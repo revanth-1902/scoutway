@@ -217,42 +217,81 @@ const StoryDetailPage = () => {
 
             {/* Day-by-Day Itinerary Threads */}
             {story.daysItinerary?.length > 0 ? (
-              <div className="pt-2">
-                <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight font-outfit mb-6">
-                  🗓️ Day-by-Day Itinerary Threads
-                </h3>
-                <div className="space-y-6">
+              <div className="pt-4">
+                <div className="flex items-center justify-between mb-8">
+                  <div>
+                    <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight font-outfit flex items-center gap-2">
+                      <span className="p-2 rounded-2xl bg-sky-100 text-sky-600 shadow-2xs">🧵</span>
+                      <span>Day-by-Day Itinerary Threads</span>
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">Interactive timeline threads with activity sub-branches & budgets in ₹</p>
+                  </div>
+                  <span className="text-xs font-extrabold text-sky-700 bg-sky-50 border border-sky-200/80 px-3 py-1.5 rounded-full shadow-2xs">
+                    {story.daysItinerary.length} Days Threaded
+                  </span>
+                </div>
+
+                {/* Main Thread Spine Container */}
+                <div className="relative pl-6 sm:pl-10 space-y-10">
+                  {/* Vertical Glowing Thread Spine Line */}
+                  <div className="thread-spine" />
+
                   {story.daysItinerary.map((day, dayIdx) => (
-                    <div key={dayIdx} className="bg-slate-50/80 rounded-2xl p-4 sm:p-6 border border-slate-200/80">
-                      <div className="flex items-center gap-3 mb-4">
-                        <span className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-extrabold text-sm shadow-xs shrink-0">
+                    <div key={dayIdx} className="relative z-10 space-y-4">
+                      {/* Day Node Badge & Title */}
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-500 via-indigo-600 to-sky-400 text-white flex items-center justify-center font-extrabold text-sm shadow-md thread-node-glowing shrink-0 border-2 border-white">
                           D{day.dayNumber || dayIdx + 1}
-                        </span>
-                        <h4 className="text-base sm:text-lg font-extrabold text-slate-900 font-outfit">
-                          {day.dayTitle || `Day ${dayIdx + 1}`}
-                        </h4>
+                        </div>
+                        <div className="bg-white px-4 py-2 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center gap-2.5">
+                          <h4 className="text-sm sm:text-base font-extrabold text-slate-900 font-outfit tracking-tight">
+                            {day.dayTitle || `Day ${dayIdx + 1}`}
+                          </h4>
+                          <span className="text-[11px] font-extrabold text-slate-400">
+                            • {day.activities?.length || 0} Sub-threads
+                          </span>
+                        </div>
                       </div>
 
-                      <div className="space-y-2.5 pl-2 sm:pl-3 border-l-2 border-sky-200">
+                      {/* Sub-Threads (Activity Branches) */}
+                      <div className="pl-6 sm:pl-8 space-y-3.5 relative">
                         {day.activities?.map((act, actIdx) => (
-                          <div key={actIdx} className="flex items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200/90 shadow-2xs">
-                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                              <Compass size={16} className="text-sky-500 shrink-0" />
-                              <span className="text-xs sm:text-sm font-bold text-slate-800 truncate">{act.activityName}</span>
-                              {act.time && (
-                                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
-                                  <Clock size={11} /> {act.time}
+                          <div key={actIdx} className="relative pl-4">
+                            {/* Sub-Thread Curved Branch Connector Line */}
+                            <div className="sub-thread-connector" />
+
+                            {/* Activity Thread Card */}
+                            <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/90 shadow-2xs thread-card-interactive flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                              <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                                <span className="w-6 h-6 rounded-full bg-sky-50 text-sky-600 border border-sky-200 flex items-center justify-center text-xs font-extrabold shrink-0 mt-0.5 sm:mt-0">
+                                  {actIdx + 1}
                                 </span>
-                              )}
+                                <div className="space-y-1 min-w-0 flex-1">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-xs sm:text-base font-bold text-slate-900 leading-snug">
+                                      {act.activityName}
+                                    </span>
+                                    {act.time && (
+                                      <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-sky-700 bg-sky-50 border border-sky-200/80 px-2.5 py-0.5 rounded-full shadow-2xs">
+                                        <Clock size={11} className="text-sky-500" />
+                                        <span>{act.time}</span>
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center justify-between sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 shrink-0">
+                                <span className={`cost-badge shrink-0 ${act.cost === '-' ? 'no-cost' : 'has-cost'}`}>
+                                  {act.cost === '-' ? '—' : (
+                                    <>
+                                      <span className="font-extrabold text-xs">₹</span>
+                                      <span>{act.cost}</span>
+                                    </>
+                                  )}
+                                </span>
+                              </div>
                             </div>
-                            <span className={`cost-badge shrink-0 ${act.cost === '-' ? 'no-cost' : 'has-cost'}`}>
-                              {act.cost === '-' ? '—' : (
-                                <>
-                                  <span className="font-extrabold text-xs">₹</span>
-                                  <span>{act.cost}</span>
-                                </>
-                              )}
-                            </span>
                           </div>
                         ))}
                       </div>
@@ -261,6 +300,7 @@ const StoryDetailPage = () => {
                 </div>
               </div>
             ) : story.activities?.length > 0 && (
+
               <div className="pt-2">
                 <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight font-outfit mb-6">
                   🗓️ Activity Log
