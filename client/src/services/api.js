@@ -1,7 +1,15 @@
 import axios from 'axios';
 
+const getBaseURL = () => {
+  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    return 'http://localhost:5000';
+  }
+  return 'https://scoutway-pi.vercel.app';
+};
+
 const api = axios.create({
-  baseURL: 'https://scoutway-pi.vercel.app/',
+  baseURL: getBaseURL(),
   withCredentials: true,
 });
 
@@ -34,3 +42,4 @@ export const uploadStoryImage = (id, formData) =>
   });
 
 export default api;
+

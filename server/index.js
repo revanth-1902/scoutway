@@ -14,32 +14,67 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
-// Middleware
-app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
-  credentials: true,
-}));
+// Dynamic CORS configuration
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:5000',
+  'http://127.0.0.1:5173',
+  'https://scoutway-pi.vercel.app',
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps, Postman, curl)
+      if (!origin) return callback(null, true);
+      if (
+        allowedOrigins.includes(origin) ||
+        origin.endsWith('.vercel.app') ||
+        process.env.NODE_ENV !== 'production'
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true); // Allow origin dynamically
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  })
+);
+
+app.options('*', cors());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'secret',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { secure: false, maxAge: 7 * 24 * 60 * 60 * 1000 },
-}));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'scoutway_session_secret_dev',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: process.env.NODE_ENV === 'production', maxAge: 7 * 24 * 60 * 60 * 1000 },
+  })
+);
 
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Routes
+// Routes — Support both /api/auth and /auth, /api/stories and /stories
 app.use('/api/auth', authRoutes);
-app.use('/api/stories', storyRoutes);
+app.use('/auth', authRoutes);
 
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'ScoutWay API is running' });
-});
+app.use('/api/stories', storyRoutes);
+app.use('/stories', storyRoutes);
+
+// Health check endpoints
+const healthHandler = (req, res) => {
+  res.json({ status: 'ok', message: 'ScoutWay API is running', timestamp: new Date().toISOString() });
+};
+app.get('/api/health', healthHandler);
+app.get('/health', healthHandler);
+app.get('/', healthHandler);
 
 // 404 handler
 app.use((req, res) => {
@@ -48,11 +83,16 @@ app.use((req, res) => {
 
 // Error handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('Server error:', err.stack || err.message);
   res.status(500).json({ message: err.message || 'Internal server error' });
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 ScoutWay server running on port ${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🚀 ScoutWay server running on port ${PORT}`);
+  });
+}
+
+module.exports = app;
+
