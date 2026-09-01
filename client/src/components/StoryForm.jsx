@@ -115,7 +115,32 @@ const StoryForm = ({ story, onClose, onSaved }) => {
     setImagePreview(URL.createObjectURL(file));
   };
 
-  const handleGalleryFilesChange = (files) => {
+  const compressImage = (file, maxWidth = 1200, quality = 0.8) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleGalleryFilesChange = async (files) => {
     if (!files || !files.length) return;
     const remainingSlots = 6 - galleryPreviews.length;
     if (remainingSlots <= 0) {
@@ -124,20 +149,21 @@ const StoryForm = ({ story, onClose, onSaved }) => {
     }
 
     const selectedFiles = Array.from(files).slice(0, remainingSlots);
-    selectedFiles.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const base64Url = e.target.result;
+    for (const file of selectedFiles) {
+      try {
+        const compressedBase64 = await compressImage(file);
         setGalleryPreviews((prev) => {
           if (prev.length >= 6) return prev;
-          const updated = [...prev, base64Url];
+          const updated = [...prev, compressedBase64];
           set('imageGallery', updated);
           return updated;
         });
-      };
-      reader.readAsDataURL(file);
-    });
+      } catch {
+        toast.error('Failed to process image');
+      }
+    }
   };
+
 
   const removeGalleryPhoto = (idx) => {
     setGalleryPreviews((prev) => {
