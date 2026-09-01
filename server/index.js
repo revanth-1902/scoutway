@@ -14,6 +14,18 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
+// DB connection middleware for serverless requests
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error('DB connection error:', err.message);
+    next();
+  }
+});
+
+
 // Dynamic CORS configuration
 const allowedOrigins = [
   process.env.CLIENT_URL,
