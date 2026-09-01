@@ -77,7 +77,8 @@ async function runTests() {
     const res = await request('POST', '/auth/register', {
       name: 'Test Explorer',
       email: testEmail,
-      password: 'password123',
+      password: 'Password123!',
+
     });
     if (res.status !== 201 || !res.data.token) throw new Error(`Registration failed: ${JSON.stringify(res.data)}`);
     userToken = res.data.token;
@@ -87,7 +88,8 @@ async function runTests() {
   await assertRoute('POST /auth/login (Login User)', async () => {
     const res = await request('POST', '/auth/login', {
       email: testEmail,
-      password: 'password123',
+      password: 'Password123!',
+
     });
     if (res.status !== 200 || !res.data.token) throw new Error(`Login failed: ${JSON.stringify(res.data)}`);
   });

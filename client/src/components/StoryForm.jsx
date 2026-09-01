@@ -191,7 +191,15 @@ const StoryForm = ({ story, onClose, onSaved }) => {
       return;
     }
 
+    const todayStr = new Date().toISOString().slice(0, 10);
+    if (form.tripStartDate > todayStr || form.tripEndDate > todayStr) {
+      toast.error('Trip dates cannot be in the future.');
+      return;
+    }
+
     setLoading(true);
+
+
 
     // Clean daysItinerary — filter out empty activities
     const cleanedDaysItinerary = form.daysItinerary
@@ -402,6 +410,7 @@ const StoryForm = ({ story, onClose, onSaved }) => {
                   </label>
                   <input id="story-start-date" type="date" value={form.tripStartDate}
                     onChange={e => set('tripStartDate', e.target.value)}
+                    max={new Date().toISOString().slice(0, 10)}
                     className="input-field" required />
                 </div>
                 <div className="form-group">
@@ -411,8 +420,11 @@ const StoryForm = ({ story, onClose, onSaved }) => {
                   </label>
                   <input id="story-end-date" type="date" value={form.tripEndDate}
                     onChange={e => set('tripEndDate', e.target.value)}
-                    min={form.tripStartDate} className="input-field" required />
+                    min={form.tripStartDate}
+                    max={new Date().toISOString().slice(0, 10)}
+                    className="input-field" required />
                 </div>
+
                 <div className="form-group">
                   <label htmlFor="story-persons">
                     <Users size={14} className="text-sky-500 shrink-0" />

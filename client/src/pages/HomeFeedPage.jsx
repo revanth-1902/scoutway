@@ -19,6 +19,7 @@ const HomeFeedPage = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [dateRange, setDateRange] = useState(null);
+  const [authorFilter, setAuthorFilter] = useState(null);
   const [showForm, setShowForm] = useState(searchParams.get('add') === 'true');
   const [showCalendar, setShowCalendar] = useState(false);
 
@@ -58,6 +59,10 @@ const HomeFeedPage = () => {
     setDateRange(null);
   };
 
+  const clearAuthorFilter = () => {
+    setAuthorFilter(null);
+  };
+
   const handleAddClick = () => {
     if (isGuest) { toast.error('Sign up to add stories!'); return; }
     setShowForm(true);
@@ -70,6 +75,10 @@ const HomeFeedPage = () => {
       return [saved, ...prev];
     });
   };
+
+  const displayedStories = authorFilter
+    ? stories.filter(s => s.userId?._id === authorFilter.userId || s.userId?.name?.toLowerCase() === authorFilter.name?.toLowerCase())
+    : stories;
 
   const headingDates = dateRange?.start
     ? `${format(dateRange.start, 'MMM d, yyyy')}${dateRange.end ? ` – ${format(dateRange.end, 'MMM d, yyyy')}` : ''}`
@@ -84,12 +93,22 @@ const HomeFeedPage = () => {
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4 pb-5 border-b border-slate-200/80">
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-outfit">
-              {headingDates ? `Travel Stories: ${headingDates}` : 'Explore Stories'}
+              {authorFilter
+                ? `Stories by ${authorFilter.name}`
+                : headingDates
+                ? `Travel Stories: ${headingDates}`
+                : 'Explore Stories'}
             </h1>
+            {authorFilter && (
+              <button onClick={clearAuthorFilter}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-extrabold text-white bg-sky-600 border border-sky-500 hover:bg-sky-700 transition-colors shadow-2xs">
+                <X size={13} /> Clear author filter ({displayedStories.length})
+              </button>
+            )}
             {dateRange?.start && (
               <button onClick={clearDateFilter}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-extrabold text-sky-700 bg-sky-100/90 border border-sky-200 hover:bg-sky-200 transition-colors shadow-2xs">
-                <X size={13} /> Clear filter
+                <X size={13} /> Clear date filter
               </button>
             )}
           </div>
@@ -133,16 +152,25 @@ const HomeFeedPage = () => {
                   </div>
                 ))}
               </div>
-            ) : stories.length === 0 ? (
+            ) : displayedStories.length === 0 ? (
               <EmptyState onAdd={handleAddClick} isGuest={isGuest} />
             ) : (
               <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${showCalendar ? 'lg:grid-cols-4' : 'lg:grid-cols-4 xl:grid-cols-5'} gap-4 sm:gap-6 items-stretch`}>
-                {stories.map(story => (
-                  <StoryCard key={story._id} story={story} />
+                {displayedStories.map(story => (
+                  <StoryCard
+                    key={story._id}
+                    story={story}
+                    onLikeUpdate={(evtType, payload) => {
+                      if (evtType === 'AUTHOR_FILTER') {
+                        setAuthorFilter(payload);
+                      }
+                    }}
+                  />
                 ))}
               </div>
             )}
           </div>
+
 
 
           {/* Desktop Sticky Calendar */}

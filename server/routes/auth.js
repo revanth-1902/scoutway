@@ -14,12 +14,23 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Please provide name, email and password' });
     }
 
+    const hasUpper = /[A-Z]/.test(password);
+    const hasLower = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+    if (password.length < 6 || !hasUpper || !hasLower || !hasNumber || !hasSpecial) {
+      return res.status(400).json({
+        message: 'Password must be at least 6 chars with uppercase, lowercase, number & special character (!@#$).'
+      });
+    }
+
     const existing = await User.findOne({ email: email.toLowerCase() });
     if (existing) {
       return res.status(400).json({ message: 'Email already registered' });
     }
 
     const user = await User.create({ name, email, password, authProvider: 'local' });
+
     sendToken(user, 201, res);
   } catch (err) {
     res.status(500).json({ message: err.message });

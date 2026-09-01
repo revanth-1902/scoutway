@@ -187,13 +187,18 @@ const StoryDetailPage = () => {
 
               {/* Author Badge */}
               {story.userId?.name && (
-                <div className="inline-flex items-center gap-2 text-xs sm:text-sm text-slate-700 font-bold bg-slate-100/90 px-3 py-1.5 rounded-full border border-slate-200/80">
+                <Link
+                  to={`/home?search=${encodeURIComponent(story.userId.name)}`}
+                  className="inline-flex items-center gap-2 text-xs sm:text-sm text-slate-700 hover:text-sky-600 font-bold bg-slate-100/90 hover:bg-sky-50 px-3.5 py-1.5 rounded-full border border-slate-200/80 transition-colors"
+                  title={`View all stories posted by ${story.userId.name}`}
+                >
                   <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 bg-gradient-to-tr from-sky-500 to-indigo-600 shadow-2xs">
                     {story.userId.name[0]?.toUpperCase()}
                   </div>
                   <span>by {story.userId.name}</span>
-                </div>
+                </Link>
               )}
+
             </div>
 
             {/* Divider */}

@@ -41,7 +41,35 @@ const StoryCard = ({ story, onLikeUpdate }) => {
     }
   };
 
+  // Calculate total trip cost
+  let totalCost = 0;
+  const parseCost = (costStr) => {
+    if (!costStr || costStr === '-') return 0;
+    const num = parseFloat(String(costStr).replace(/[^0-9.]/g, ''));
+    return isNaN(num) ? 0 : num;
+  };
+
+  if (story.daysItinerary?.length) {
+    story.daysItinerary.forEach((day) => {
+      day.activities?.forEach((act) => {
+        totalCost += parseCost(act.cost);
+      });
+    });
+  } else if (story.activities?.length) {
+    story.activities.forEach((act) => {
+      totalCost += parseCost(act.cost);
+    });
+  }
+
   const excerpt = story.description || '';
+
+  const handleAuthorClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (story.userId?._id) {
+      onLikeUpdate?.('AUTHOR_FILTER', { userId: story.userId._id, name: story.userId.name });
+    }
+  };
 
   return (
     <Link to={`/story/${story._id}`} className="block h-full group">
@@ -70,10 +98,21 @@ const StoryCard = ({ story, onLikeUpdate }) => {
             />
           </button>
 
-          {/* Author Glass Badge */}
+          {/* Author Glass Badge (Clickable to view all stories by user) */}
           {story.userId?.name && (
-            <div className="absolute bottom-3.5 left-3.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/75 backdrop-blur-md text-white text-xs font-semibold border border-white/20 shadow-xs max-w-[75%] truncate">
+            <div
+              onClick={handleAuthorClick}
+              className="absolute bottom-3.5 left-3.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/80 hover:bg-sky-600 backdrop-blur-md text-white text-xs font-semibold border border-white/20 shadow-xs max-w-[75%] truncate cursor-pointer transition-colors"
+              title={`View all stories by ${story.userId.name}`}
+            >
               <span className="truncate">by {story.userId.name}</span>
+            </div>
+          )}
+
+          {/* Total Trip Cost Badge */}
+          {totalCost > 0 && (
+            <div className="absolute bottom-3.5 right-3.5 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-900/85 backdrop-blur-md text-emerald-300 text-xs font-extrabold border border-emerald-400/30 shadow-xs">
+              <span>₹{totalCost.toLocaleString('en-IN')}</span>
             </div>
           )}
         </div>
@@ -122,7 +161,6 @@ const StoryCard = ({ story, onLikeUpdate }) => {
               )}
             </div>
 
-
             {/* Likes Count Span Badge */}
             <span className="inline-flex items-center gap-1 text-xs font-extrabold text-slate-600 bg-slate-100/90 px-2.5 py-1 rounded-full shrink-0 border border-slate-200/60">
               <Heart size={12} className={liked ? 'fill-red-500 text-red-500' : 'text-slate-400'} />
@@ -136,6 +174,7 @@ const StoryCard = ({ story, onLikeUpdate }) => {
 };
 
 export default StoryCard;
+
 
 
 

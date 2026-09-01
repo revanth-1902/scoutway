@@ -16,14 +16,23 @@ const RegisterPage = () => {
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
+  const passChecks = {
+    length: form.password.length >= 6,
+    upper: /[A-Z]/.test(form.password),
+    lower: /[a-z]/.test(form.password),
+    number: /[0-9]/.test(form.password),
+    special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(form.password),
+  };
+  const isPassValid = Object.values(passChecks).every(Boolean);
+
   const handleRegister = async (e) => {
     e.preventDefault();
     if (form.password !== form.confirmPassword) {
       toast.error('Passwords do not match');
       return;
     }
-    if (form.password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+    if (!isPassValid) {
+      toast.error('Password must satisfy all complexity requirements');
       return;
     }
     setLoading(true);
@@ -38,6 +47,7 @@ const RegisterPage = () => {
       setLoading(false);
     }
   };
+
 
   const handleGoogle = () => {
     const apiBase = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
@@ -158,7 +168,29 @@ const RegisterPage = () => {
                   {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
+
+              {/* Password Complexity Checklist Pills */}
+              {form.password.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-2">
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${passChecks.length ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>
+                    {passChecks.length ? '✓ 6+ Chars' : '• 6+ Chars'}
+                  </span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${passChecks.upper ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>
+                    {passChecks.upper ? '✓ Upper A-Z' : '• Upper A-Z'}
+                  </span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${passChecks.lower ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>
+                    {passChecks.lower ? '✓ Lower a-z' : '• Lower a-z'}
+                  </span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${passChecks.number ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>
+                    {passChecks.number ? '✓ Number 0-9' : '• Number 0-9'}
+                  </span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${passChecks.special ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>
+                    {passChecks.special ? '✓ Special (!@#)' : '• Special (!@#)'}
+                  </span>
+                </div>
+              )}
             </div>
+
 
             <div className="form-group">
               <label htmlFor="register-confirm">Confirm Password</label>

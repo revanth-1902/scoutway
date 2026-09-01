@@ -63,7 +63,14 @@ router.post('/', protect, restrictGuest, async (req, res) => {
   try {
     const { title, fromPlace, place, tripStartDate, tripEndDate, numberOfPersons, description, activities, daysItinerary, coverImage, imageGallery } = req.body;
 
+    const now = new Date();
+    now.setHours(23, 59, 59, 999);
+    if (new Date(tripStartDate) > now || new Date(tripEndDate) > now) {
+      return res.status(400).json({ message: 'Trip dates cannot be in the future.' });
+    }
+
     const cleanedDays = cleanDaysItinerary(daysItinerary);
+
     const cleanedActivities = (activities || []).filter(a => a && a.activityName && a.activityName.trim() !== '');
 
     const story = await Story.create({
