@@ -109,10 +109,15 @@ const StoryForm = ({ story, onClose, onSaved }) => {
     setActiveDayTab(form.daysItinerary.length);
   };
 
-  const handleImageChange = (file) => {
+  const handleImageChange = async (file) => {
     if (!file) return;
     setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+    try {
+      const compressed = await compressImage(file, 1600, 0.85);
+      setImagePreview(compressed);
+    } catch {
+      setImagePreview(URL.createObjectURL(file));
+    }
   };
 
   const compressImage = (file, maxWidth = 1200, quality = 0.8) => {
@@ -164,7 +169,6 @@ const StoryForm = ({ story, onClose, onSaved }) => {
     }
   };
 
-
   const removeGalleryPhoto = (idx) => {
     setGalleryPreviews((prev) => {
       const updated = prev.filter((_, i) => i !== idx);
@@ -214,6 +218,7 @@ const StoryForm = ({ story, onClose, onSaved }) => {
 
     const payload = {
       ...form,
+      coverImage: imagePreview || story?.coverImage || '',
       numberOfPersons: parseInt(form.numberOfPersons, 10) || 1,
       activities: flatActivities,
       daysItinerary: cleanedDaysItinerary,
