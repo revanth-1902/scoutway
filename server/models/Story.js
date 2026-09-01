@@ -1,10 +1,11 @@
 const mongoose = require('mongoose');
 
 const activitySchema = new mongoose.Schema({
-  activityName: { type: String, required: true, trim: true },
+  activityName: { type: String, default: '', trim: true },
   cost: { type: String, default: '-' },
   time: { type: String, default: '' },
 });
+
 
 const dayItinerarySchema = new mongoose.Schema({
   dayNumber: { type: Number, required: true },
@@ -56,10 +57,12 @@ const storySchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    imageGallery: [{ type: String }],
     description: {
       type: String,
       required: [true, 'Story description is required'],
     },
+
     activities: [activitySchema],
     daysItinerary: [dayItinerarySchema],
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],

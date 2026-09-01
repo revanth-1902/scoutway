@@ -41,10 +41,30 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+const cleanDaysItinerary = (rawDays) => {
+  if (!Array.isArray(rawDays)) return [];
+  return rawDays
+    .map((day, idx) => ({
+      dayNumber: day.dayNumber || idx + 1,
+      dayTitle: day.dayTitle || `Day ${idx + 1}`,
+      activities: (day.activities || [])
+        .filter(a => a && a.activityName && a.activityName.trim() !== '')
+        .map(a => ({
+          activityName: a.activityName.trim(),
+          cost: a.cost || '-',
+          time: a.time || ''
+        }))
+    }))
+    .filter(day => day.activities.length > 0 || (day.dayTitle && day.dayTitle !== `Day ${day.dayNumber}`));
+};
+
 // POST /api/stories — Create story (auth required, no guest)
 router.post('/', protect, restrictGuest, async (req, res) => {
   try {
-    const { title, fromPlace, place, tripStartDate, tripEndDate, numberOfPersons, description, activities, daysItinerary, coverImage } = req.body;
+    const { title, fromPlace, place, tripStartDate, tripEndDate, numberOfPersons, description, activities, daysItinerary, coverImage, imageGallery } = req.body;
+
+    const cleanedDays = cleanDaysItinerary(daysItinerary);
+    const cleanedActivities = (activities || []).filter(a => a && a.activityName && a.activityName.trim() !== '');
 
     const story = await Story.create({
       userId: req.user._id,
@@ -55,9 +75,10 @@ router.post('/', protect, restrictGuest, async (req, res) => {
       tripEndDate,
       numberOfPersons: numberOfPersons ? parseInt(numberOfPersons, 10) : 1,
       description,
-      activities: activities || [],
-      daysItinerary: daysItinerary || [],
+      activities: cleanedActivities,
+      daysItinerary: cleanedDays,
       coverImage: coverImage || '',
+      imageGallery: Array.isArray(imageGallery) ? imageGallery.slice(0, 6) : [],
     });
 
     const populated = await story.populate('userId', 'name avatar');
@@ -77,7 +98,11 @@ router.put('/:id', protect, restrictGuest, async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to update this story' });
     }
 
-    const { title, fromPlace, place, tripStartDate, tripEndDate, numberOfPersons, description, activities, daysItinerary, coverImage } = req.body;
+    const { title, fromPlace, place, tripStartDate, tripEndDate, numberOfPersons, description, activities, daysItinerary, coverImage, imageGallery } = req.body;
+
+    const cleanedDays = daysItinerary ? cleanDaysItinerary(daysItinerary) : story.daysItinerary;
+    const cleanedActivities = activities ? (activities || []).filter(a => a && a.activityName && a.activityName.trim() !== '') : story.activities;
+
     Object.assign(story, {
       title,
       fromPlace: fromPlace || '',
@@ -86,9 +111,10 @@ router.put('/:id', protect, restrictGuest, async (req, res) => {
       tripEndDate,
       numberOfPersons: numberOfPersons ? parseInt(numberOfPersons, 10) : story.numberOfPersons || 1,
       description,
-      activities: activities || story.activities,
-      daysItinerary: daysItinerary || story.daysItinerary,
+      activities: cleanedActivities,
+      daysItinerary: cleanedDays,
       coverImage: coverImage !== undefined ? coverImage : story.coverImage,
+      imageGallery: Array.isArray(imageGallery) ? imageGallery.slice(0, 6) : story.imageGallery || [],
     });
     await story.save();
 
@@ -98,6 +124,8 @@ router.put('/:id', protect, restrictGuest, async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 });
+
+
 
 
 // DELETE /api/stories/:id — Delete story (author only)

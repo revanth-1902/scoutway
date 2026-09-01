@@ -209,8 +209,8 @@ const StoryDetailPage = () => {
               <div className="mb-8 p-4 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-between flex-wrap gap-2">
                 <span className="text-sm font-extrabold text-emerald-900 font-outfit">Estimated Trip Budget</span>
                 <span className="inline-flex items-center gap-1 text-sm font-extrabold text-emerald-800 bg-white px-4 py-1.5 rounded-xl border border-emerald-200 shadow-2xs">
-                  <DollarSign size={16} className="text-emerald-600" />
-                  <span>${totalCost.toFixed(2)} USD</span>
+                  <span className="text-emerald-600 font-bold">₹</span>
+                  <span>{totalCost.toLocaleString('en-IN')} INR</span>
                 </span>
               </div>
             )}
@@ -248,7 +248,7 @@ const StoryDetailPage = () => {
                             <span className={`cost-badge shrink-0 ${act.cost === '-' ? 'no-cost' : 'has-cost'}`}>
                               {act.cost === '-' ? '—' : (
                                 <>
-                                  <DollarSign size={13} />
+                                  <span className="font-extrabold text-xs">₹</span>
                                   <span>{act.cost}</span>
                                 </>
                               )}
@@ -278,11 +278,34 @@ const StoryDetailPage = () => {
                         <span className={`cost-badge shrink-0 ${act.cost === '-' ? 'no-cost' : 'has-cost'}`}>
                           {act.cost === '-' ? '—' : (
                             <>
-                              <DollarSign size={13} />
+                              <span className="font-extrabold text-xs">₹</span>
                               <span>{act.cost}</span>
                             </>
                           )}
                         </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Trip Photo Gallery (Up to 6 Photos) */}
+            {story.imageGallery?.length > 0 && (
+              <div className="mt-10 pt-6 border-t border-slate-100">
+                <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight font-outfit mb-4 flex items-center gap-2">
+                  <span>📸 Trip Photo Gallery ({story.imageGallery.length} {story.imageGallery.length === 1 ? 'Photo' : 'Photos'})</span>
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {story.imageGallery.map((photo, pIdx) => (
+                    <div key={pIdx} className="group relative aspect-4/3 rounded-2xl overflow-hidden border border-slate-200/90 shadow-2xs bg-slate-100">
+                      <img
+                        src={photo}
+                        alt={`Gallery ${pIdx + 1}`}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2.5">
+                        <span className="text-[11px] font-extrabold text-white">Photo {pIdx + 1}</span>
                       </div>
                     </div>
                   ))}
@@ -317,6 +340,7 @@ const StoryDetailPage = () => {
             ></iframe>
           </div>
         </div>
+
       </div>
 
       {/* Edit modal */}
