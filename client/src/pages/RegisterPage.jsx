@@ -40,8 +40,12 @@ const RegisterPage = () => {
   };
 
   const handleGoogle = () => {
-    window.location.href = '/api/auth/google';
+    const apiBase = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+      ? 'http://localhost:5000'
+      : 'https://scoutway-pi.vercel.app';
+    window.location.href = `${apiBase}/auth/google`;
   };
+
 
   return (
     <div className="min-h-screen flex bg-slate-50 text-slate-900 font-sans">

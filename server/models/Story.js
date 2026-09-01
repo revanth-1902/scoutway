@@ -3,6 +3,13 @@ const mongoose = require('mongoose');
 const activitySchema = new mongoose.Schema({
   activityName: { type: String, required: true, trim: true },
   cost: { type: String, default: '-' },
+  time: { type: String, default: '' },
+});
+
+const dayItinerarySchema = new mongoose.Schema({
+  dayNumber: { type: Number, required: true },
+  dayTitle: { type: String, default: '' },
+  activities: [activitySchema],
 });
 
 const storySchema = new mongoose.Schema(
@@ -36,6 +43,11 @@ const storySchema = new mongoose.Schema(
       type: Date,
       required: [true, 'Trip end date is required'],
     },
+    numberOfPersons: {
+      type: Number,
+      default: 1,
+      min: [1, 'Number of persons must be at least 1'],
+    },
     coverImage: {
       type: String,
       default: '',
@@ -49,6 +61,7 @@ const storySchema = new mongoose.Schema(
       required: [true, 'Story description is required'],
     },
     activities: [activitySchema],
+    daysItinerary: [dayItinerarySchema],
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     isPublic: { type: Boolean, default: true },
   },
@@ -59,3 +72,4 @@ const storySchema = new mongoose.Schema(
 storySchema.index({ title: 'text', description: 'text', place: 'text', fromPlace: 'text' });
 
 module.exports = mongoose.model('Story', storySchema);
+

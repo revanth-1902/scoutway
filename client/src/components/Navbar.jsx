@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { Search, LogOut, PlusCircle, Map } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const Navbar = ({ searchQuery, onSearch }) => {
+const Navbar = ({ searchQuery, onSearch, onAddStory }) => {
   const { user, logout, isGuest } = useAuth();
   const navigate = useNavigate();
 
@@ -19,8 +19,13 @@ const Navbar = ({ searchQuery, onSearch }) => {
       navigate('/register');
       return;
     }
-    navigate('/home?add=true');
+    if (onAddStory) {
+      onAddStory();
+    } else {
+      navigate('/home?add=true');
+    }
   };
+
 
   return (
     <header className="sticky top-0 z-50 glass shadow-xs border-b border-slate-200/80">

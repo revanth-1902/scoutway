@@ -44,7 +44,7 @@ router.get('/:id', async (req, res) => {
 // POST /api/stories — Create story (auth required, no guest)
 router.post('/', protect, restrictGuest, async (req, res) => {
   try {
-    const { title, fromPlace, place, tripStartDate, tripEndDate, description, activities, coverImage } = req.body;
+    const { title, fromPlace, place, tripStartDate, tripEndDate, numberOfPersons, description, activities, daysItinerary, coverImage } = req.body;
 
     const story = await Story.create({
       userId: req.user._id,
@@ -53,8 +53,10 @@ router.post('/', protect, restrictGuest, async (req, res) => {
       place,
       tripStartDate,
       tripEndDate,
+      numberOfPersons: numberOfPersons ? parseInt(numberOfPersons, 10) : 1,
       description,
       activities: activities || [],
+      daysItinerary: daysItinerary || [],
       coverImage: coverImage || '',
     });
 
@@ -75,8 +77,19 @@ router.put('/:id', protect, restrictGuest, async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to update this story' });
     }
 
-    const { title, fromPlace, place, tripStartDate, tripEndDate, description, activities, coverImage } = req.body;
-    Object.assign(story, { title, fromPlace: fromPlace || '', place, tripStartDate, tripEndDate, description, activities, coverImage });
+    const { title, fromPlace, place, tripStartDate, tripEndDate, numberOfPersons, description, activities, daysItinerary, coverImage } = req.body;
+    Object.assign(story, {
+      title,
+      fromPlace: fromPlace || '',
+      place,
+      tripStartDate,
+      tripEndDate,
+      numberOfPersons: numberOfPersons ? parseInt(numberOfPersons, 10) : story.numberOfPersons || 1,
+      description,
+      activities: activities || story.activities,
+      daysItinerary: daysItinerary || story.daysItinerary,
+      coverImage: coverImage !== undefined ? coverImage : story.coverImage,
+    });
     await story.save();
 
     const populated = await story.populate('userId', 'name avatar');
@@ -85,6 +98,7 @@ router.put('/:id', protect, restrictGuest, async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 });
+
 
 // DELETE /api/stories/:id — Delete story (author only)
 router.delete('/:id', protect, restrictGuest, async (req, res) => {

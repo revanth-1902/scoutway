@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getStory, deleteStory, likeStory } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { format } from 'date-fns';
-import { ArrowLeft, MapPin, Calendar, Heart, Edit, Trash2, DollarSign, Navigation, ArrowRight } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Heart, Edit, Trash2, DollarSign, Navigation, ArrowRight, Users, Clock, Compass } from 'lucide-react';
 import StoryForm from '../components/StoryForm';
 import toast from 'react-hot-toast';
 
@@ -86,14 +86,27 @@ const StoryDetailPage = () => {
 
   if (!story) return null;
 
-  const totalCost = story.activities
-    ?.map(a => parseFloat(a.cost))
-    .filter(n => !isNaN(n))
-    .reduce((acc, n) => acc + n, 0);
+  // Calculate total cost from flat activities or daysItinerary
+  let totalCost = 0;
+  if (story.daysItinerary?.length) {
+    story.daysItinerary.forEach(d => {
+      d.activities?.forEach(a => {
+        const val = parseFloat(a.cost);
+        if (!isNaN(val)) totalCost += val;
+      });
+    });
+  } else if (story.activities?.length) {
+    story.activities.forEach(a => {
+      const val = parseFloat(a.cost);
+      if (!isNaN(val)) totalCost += val;
+    });
+  }
+
+  const mapSearchQuery = story.fromPlace ? `${story.fromPlace} to ${story.place}` : story.place;
 
   return (
     <div className="min-h-screen pb-20 font-sans bg-slate-50">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-10 animate-fade-in">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 animate-fade-in">
         {/* Back + author actions */}
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <button onClick={() => navigate(-1)}
@@ -116,7 +129,7 @@ const StoryDetailPage = () => {
         </div>
 
         {/* Main Story Container */}
-        <article className="bg-white rounded-3xl shadow-sm border border-slate-200/90 overflow-hidden">
+        <article className="bg-white rounded-3xl shadow-sm border border-slate-200/90 overflow-hidden mb-8">
           {/* Cover image — 16:9 aspect ratio */}
           <div className="relative overflow-hidden w-full" style={{ aspectRatio: '16/9' }}>
             <img src={coverImg} alt={story.title}
@@ -148,6 +161,12 @@ const StoryDetailPage = () => {
                   {format(new Date(story.tripStartDate), 'MMM d, yyyy')}
                   {story.tripEndDate ? ` – ${format(new Date(story.tripEndDate), 'MMM d, yyyy')}` : ''}
                 </span>
+              </div>
+
+              {/* Travelers Badge */}
+              <div className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-slate-700 font-bold bg-slate-100/90 px-3.5 py-1.5 rounded-full border border-slate-200/80">
+                <Users size={14} className="shrink-0 text-indigo-500" />
+                <span>{story.numberOfPersons || 1} {story.numberOfPersons === 1 ? 'Traveler' : 'Travelers'}</span>
               </div>
 
               {/* Route: From → Destination */}
@@ -185,22 +204,67 @@ const StoryDetailPage = () => {
               {story.description}
             </div>
 
-            {/* Activity Thread — Vertical Timeline */}
-            {story.activities?.length > 0 && (
-              <div className="pt-2">
-                <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-                  <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight font-outfit">
-                    🗓️ Activity Log
-                  </h3>
-                  {totalCost > 0 && (
-                    <div className="inline-flex items-center gap-1 text-xs sm:text-sm font-extrabold px-4 py-2 rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-200/80 shadow-xs">
-                      <DollarSign size={15} className="text-emerald-600" />
-                      <span>Total Trip Cost: ${totalCost.toFixed(2)}</span>
-                    </div>
-                  )}
-                </div>
+            {/* Total Trip Cost Summary */}
+            {totalCost > 0 && (
+              <div className="mb-8 p-4 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-between flex-wrap gap-2">
+                <span className="text-sm font-extrabold text-emerald-900 font-outfit">Estimated Trip Budget</span>
+                <span className="inline-flex items-center gap-1 text-sm font-extrabold text-emerald-800 bg-white px-4 py-1.5 rounded-xl border border-emerald-200 shadow-2xs">
+                  <DollarSign size={16} className="text-emerald-600" />
+                  <span>${totalCost.toFixed(2)} USD</span>
+                </span>
+              </div>
+            )}
 
-                {/* Vertical Timeline */}
+            {/* Day-by-Day Itinerary Threads */}
+            {story.daysItinerary?.length > 0 ? (
+              <div className="pt-2">
+                <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight font-outfit mb-6">
+                  🗓️ Day-by-Day Itinerary Threads
+                </h3>
+                <div className="space-y-6">
+                  {story.daysItinerary.map((day, dayIdx) => (
+                    <div key={dayIdx} className="bg-slate-50/80 rounded-2xl p-4 sm:p-6 border border-slate-200/80">
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-extrabold text-sm shadow-xs shrink-0">
+                          D{day.dayNumber || dayIdx + 1}
+                        </span>
+                        <h4 className="text-base sm:text-lg font-extrabold text-slate-900 font-outfit">
+                          {day.dayTitle || `Day ${dayIdx + 1}`}
+                        </h4>
+                      </div>
+
+                      <div className="space-y-2.5 pl-2 sm:pl-3 border-l-2 border-sky-200">
+                        {day.activities?.map((act, actIdx) => (
+                          <div key={actIdx} className="flex items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200/90 shadow-2xs">
+                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                              <Compass size={16} className="text-sky-500 shrink-0" />
+                              <span className="text-xs sm:text-sm font-bold text-slate-800 truncate">{act.activityName}</span>
+                              {act.time && (
+                                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                                  <Clock size={11} /> {act.time}
+                                </span>
+                              )}
+                            </div>
+                            <span className={`cost-badge shrink-0 ${act.cost === '-' ? 'no-cost' : 'has-cost'}`}>
+                              {act.cost === '-' ? '—' : (
+                                <>
+                                  <DollarSign size={13} />
+                                  <span>{act.cost}</span>
+                                </>
+                              )}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : story.activities?.length > 0 && (
+              <div className="pt-2">
+                <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight font-outfit mb-6">
+                  🗓️ Activity Log
+                </h3>
                 <div className="activity-timeline">
                   {story.activities.map((act, i) => (
                     <div key={i} className="timeline-item">
@@ -227,6 +291,32 @@ const StoryDetailPage = () => {
             )}
           </div>
         </article>
+
+        {/* Free Google Maps Directions Embed Container */}
+        <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-sm overflow-hidden mb-8">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <h3 className="text-lg sm:text-xl font-extrabold font-outfit text-slate-900 flex items-center gap-2">
+              <MapPin size={20} className="text-sky-500" />
+              <span>Interactive Route Map & Directions</span>
+            </h3>
+            <span className="text-xs font-extrabold text-sky-700 bg-sky-50 border border-sky-200 px-3 py-1 rounded-full">
+              Free Google Maps Route
+            </span>
+          </div>
+
+          <div className="w-full h-80 sm:h-96 rounded-2xl overflow-hidden border border-slate-200 relative bg-slate-100 shadow-inner">
+            <iframe
+              title="Route Map Directions"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              loading="lazy"
+              allowFullScreen
+              referrerPolicy="no-referrer-when-downgrade"
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(mapSearchQuery)}&output=embed`}
+            ></iframe>
+          </div>
+        </div>
       </div>
 
       {/* Edit modal */}
@@ -242,6 +332,7 @@ const StoryDetailPage = () => {
 };
 
 export default StoryDetailPage;
+
 
 
 

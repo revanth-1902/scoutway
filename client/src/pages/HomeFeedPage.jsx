@@ -43,6 +43,13 @@ const HomeFeedPage = () => {
     return () => clearTimeout(timer);
   }, [fetchStories]);
 
+  useEffect(() => {
+    if (searchParams.get('add') === 'true') {
+      setShowForm(true);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
   const handleDateSelect = (range) => {
     setDateRange(range);
   };
@@ -58,8 +65,9 @@ const HomeFeedPage = () => {
 
   const handleStorySaved = (saved) => {
     setStories(prev => {
-      const exists = prev.find(s => s._id === saved._id);
-      return exists ? prev.map(s => s._id === saved._id ? saved : s) : [saved, ...prev];
+      const idx = prev.findIndex(s => s._id === saved._id);
+      if (idx !== -1) { const copy = [...prev]; copy[idx] = saved; return copy; }
+      return [saved, ...prev];
     });
   };
 
@@ -69,7 +77,7 @@ const HomeFeedPage = () => {
 
   return (
     <div className="min-h-screen font-sans bg-slate-50">
-      <Navbar searchQuery={searchQuery} onSearch={setSearchQuery} />
+      <Navbar searchQuery={searchQuery} onSearch={setSearchQuery} onAddStory={handleAddClick} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
         {/* Header Row */}
