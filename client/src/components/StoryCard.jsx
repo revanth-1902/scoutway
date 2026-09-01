@@ -41,7 +41,7 @@ const StoryCard = ({ story, onLikeUpdate }) => {
     }
   };
 
-  const excerpt = story.description?.slice(0, 120) + (story.description?.length > 120 ? '...' : '');
+  const excerpt = story.description || '';
 
   return (
     <Link to={`/story/${story._id}`} className="block h-full group">
@@ -73,22 +73,22 @@ const StoryCard = ({ story, onLikeUpdate }) => {
           {/* Author Glass Badge */}
           {story.userId?.name && (
             <div className="absolute bottom-3.5 left-3.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/75 backdrop-blur-md text-white text-xs font-semibold border border-white/20 shadow-xs max-w-[75%] truncate">
-              <span>by {story.userId.name}</span>
+              <span className="truncate">by {story.userId.name}</span>
             </div>
           )}
         </div>
 
         {/* Card Body — Flex Column */}
-        <div className="p-5 flex flex-col flex-1 bg-white justify-between">
+        <div className="p-4 sm:p-5 flex flex-col flex-1 bg-white justify-between">
           <div>
-            <h3 className="font-extrabold text-base sm:text-lg text-slate-900 mb-1.5 line-clamp-1 group-hover:text-sky-600 transition-colors font-outfit">
+            <h3 className="font-extrabold text-base sm:text-lg text-slate-900 mb-1.5 line-clamp-1 truncate text-ellipsis overflow-hidden group-hover:text-sky-600 transition-colors font-outfit" title={story.title}>
               {story.title}
             </h3>
 
             {/* Trip Date Tag */}
-            <div className="inline-flex items-center gap-1.5 text-xs text-slate-500 font-medium mb-3">
+            <div className="inline-flex items-center gap-1.5 text-xs text-slate-500 font-medium mb-2.5">
               <Calendar size={13} className="shrink-0 text-sky-500" />
-              <span>
+              <span className="truncate">
                 {story.tripStartDate ? format(new Date(story.tripStartDate), 'MMM d, yyyy') : ''}
                 {story.tripEndDate && story.tripEndDate !== story.tripStartDate
                   ? ` – ${format(new Date(story.tripEndDate), 'MMM d, yyyy')}`
@@ -96,8 +96,8 @@ const StoryCard = ({ story, onLikeUpdate }) => {
               </span>
             </div>
 
-            {/* Narrative Excerpt */}
-            <p className="text-xs sm:text-sm text-slate-600 mb-4 line-clamp-2 leading-relaxed font-normal">
+            {/* Narrative Excerpt with Ellipsis */}
+            <p className="text-xs sm:text-sm text-slate-600 mb-4 line-clamp-2 leading-relaxed font-normal overflow-hidden text-ellipsis">
               {excerpt}
             </p>
           </div>
@@ -105,22 +105,23 @@ const StoryCard = ({ story, onLikeUpdate }) => {
           {/* Card Footer — Route Pill + Likes Badge */}
           <div className="flex items-center justify-between pt-3.5 border-t border-slate-100 mt-auto gap-2">
             {/* Route: From → Destination */}
-            <div className="inline-flex items-center gap-1.5 text-xs font-extrabold px-3 py-1.5 rounded-xl bg-sky-50 text-sky-700 border border-sky-100 min-w-0 max-w-[75%]">
+            <div className="inline-flex items-center gap-1.5 text-xs font-extrabold px-2.5 sm:px-3 py-1.5 rounded-xl bg-sky-50 text-sky-700 border border-sky-100 min-w-0 max-w-[78%]">
               {story.fromPlace ? (
                 <>
                   <Navigation size={12} className="shrink-0 text-sky-600" />
-                  <span className="truncate max-w-[42%]">{story.fromPlace}</span>
+                  <span className="truncate max-w-[42%] text-ellipsis">{story.fromPlace}</span>
                   <ArrowRight size={10} className="shrink-0 text-sky-400" />
                   <MapPin size={12} className="shrink-0 text-sky-600" />
-                  <span className="truncate max-w-[42%]">{story.place}</span>
+                  <span className="truncate max-w-[42%] text-ellipsis">{story.place}</span>
                 </>
               ) : (
                 <>
                   <MapPin size={12} className="shrink-0 text-sky-600" />
-                  <span className="truncate">{story.place}</span>
+                  <span className="truncate text-ellipsis">{story.place}</span>
                 </>
               )}
             </div>
+
 
             {/* Likes Count Span Badge */}
             <span className="inline-flex items-center gap-1 text-xs font-extrabold text-slate-600 bg-slate-100/90 px-2.5 py-1 rounded-full shrink-0 border border-slate-200/60">

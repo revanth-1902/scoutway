@@ -79,7 +79,7 @@ const HomeFeedPage = () => {
     <div className="min-h-screen font-sans bg-slate-50">
       <Navbar searchQuery={searchQuery} onSearch={setSearchQuery} onAddStory={handleAddClick} />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+      <main className="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
         {/* Header Row */}
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4 pb-5 border-b border-slate-200/80">
           <div className="flex items-center gap-3 flex-wrap">
@@ -115,11 +115,11 @@ const HomeFeedPage = () => {
 
         {/* Main Feed Container */}
         <div className="flex gap-8 items-start">
-          {/* Story grid */}
+          {/* Story grid — fits 4 to 5 cards */}
           <div className="flex-1 w-full min-w-0">
             {loading ? (
-              <div className={`grid grid-cols-1 sm:grid-cols-2 ${showCalendar ? 'lg:grid-cols-2' : 'lg:grid-cols-3'} gap-6 sm:gap-8 items-stretch`}>
-                {[...Array(6)].map((_, i) => (
+              <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${showCalendar ? 'lg:grid-cols-4' : 'lg:grid-cols-4 xl:grid-cols-5'} gap-4 sm:gap-6 items-stretch`}>
+                {[...Array(10)].map((_, i) => (
                   <div key={i} className="bg-white rounded-3xl overflow-hidden shadow-xs animate-pulse flex flex-col h-96 border border-slate-100">
                     <div className="h-48 bg-slate-200/80 w-full" />
                     <div className="p-5 space-y-4 flex-1 flex flex-col justify-between">
@@ -136,13 +136,14 @@ const HomeFeedPage = () => {
             ) : stories.length === 0 ? (
               <EmptyState onAdd={handleAddClick} isGuest={isGuest} />
             ) : (
-              <div className={`grid grid-cols-1 sm:grid-cols-2 ${showCalendar ? 'lg:grid-cols-2' : 'lg:grid-cols-3'} gap-6 sm:gap-8 items-stretch`}>
+              <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${showCalendar ? 'lg:grid-cols-4' : 'lg:grid-cols-4 xl:grid-cols-5'} gap-4 sm:gap-6 items-stretch`}>
                 {stories.map(story => (
                   <StoryCard key={story._id} story={story} />
                 ))}
               </div>
             )}
           </div>
+
 
           {/* Desktop Sticky Calendar */}
           {showCalendar && (
