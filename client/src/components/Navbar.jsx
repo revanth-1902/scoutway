@@ -33,13 +33,16 @@ const Navbar = ({ searchQuery, onSearch, onAddStory }) => {
         <div className="flex items-center justify-between h-16 gap-3 sm:gap-6">
           {/* Logo */}
           <Link to="/home" className="flex items-center gap-2.5 shrink-0 group">
-            <div className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-md bg-gradient-to-tr from-sky-500 via-sky-600 to-indigo-600 group-hover:scale-105 transition-transform duration-300">
-              <Map size={20} className="text-white" />
-            </div>
+            <img
+              src="/logo.png"
+              alt="ScoutWay Logo"
+              className="w-9 h-9 object-contain group-hover:scale-105 transition-transform duration-300 drop-shadow-xs"
+            />
             <span className="font-extrabold text-xl hidden xs:inline-block tracking-tight font-outfit bg-gradient-to-r from-slate-900 via-sky-950 to-indigo-950 bg-clip-text text-transparent">
               ScoutWay
             </span>
           </Link>
+
 
           {/* Search Bar */}
           <div className="flex-1 max-w-md mx-1 sm:mx-3">

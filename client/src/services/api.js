@@ -36,10 +36,13 @@ export const createStory = (data) => api.post('/stories', data);
 export const updateStory = (id, data) => api.put(`/stories/${id}`, data);
 export const deleteStory = (id) => api.delete(`/stories/${id}`);
 export const likeStory = (id) => api.patch(`/stories/${id}/like`);
+export const addComment = (storyId, data) => api.post(`/stories/${storyId}/comments`, data);
+export const replyComment = (storyId, commentId, data) => api.post(`/stories/${storyId}/comments/${commentId}/reply`, data);
 export const uploadStoryImage = (id, formData) =>
   api.post(`/stories/${id}/image`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
 
 export default api;
+
 

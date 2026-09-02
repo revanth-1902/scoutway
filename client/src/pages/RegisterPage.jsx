@@ -49,29 +49,19 @@ const RegisterPage = () => {
   };
 
 
-  const handleGoogle = () => {
-    const apiBase = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-      ? 'http://localhost:5000'
-      : 'https://scoutway-pi.vercel.app';
-    window.location.href = `${apiBase}/auth/google`;
-  };
-
-
   return (
-    <div className="min-h-screen flex bg-slate-50 text-slate-900 font-sans">
+    <div className="h-screen max-h-screen overflow-hidden flex bg-slate-50 text-slate-900 font-sans">
       {/* Left Image Panel */}
       <div className="hidden lg:flex flex-1 relative overflow-hidden bg-slate-950">
         <img src={AUTH_IMG} alt="Mountain travel" className="w-full h-full object-cover opacity-60" />
         <div className="absolute inset-0 flex flex-col items-center justify-center p-12 text-center bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-xl shadow-sky-500/20">
-              <Map size={28} className="text-white" />
-            </div>
+          <div className="flex items-center gap-3 mb-6">
+            <img src="/logo.png" alt="ScoutWay Logo" className="w-12 h-12 object-contain drop-shadow-md" />
             <span className="text-3xl font-extrabold text-white tracking-tight font-outfit">
               ScoutWay
             </span>
           </div>
-          <h3 className="text-white text-2xl font-extrabold leading-tight mb-3 font-outfit">
+          <h3 className="text-white text-2xl font-extrabold leading-tight mb-2 font-outfit">
             Join the Adventure
           </h3>
           <p className="text-slate-300 max-w-xs text-sm leading-relaxed font-normal">
@@ -81,52 +71,51 @@ const RegisterPage = () => {
       </div>
 
       {/* Right Form Panel */}
-      <div className="flex-1 flex flex-col justify-center items-center p-6 sm:p-10 lg:p-14 overflow-y-auto">
-        <div className="w-full max-w-md my-auto animate-fade-in">
+      <div className="flex-1 flex flex-col justify-center items-center p-4 sm:p-6 lg:p-8 h-full overflow-hidden">
+        <div className="w-full max-w-md my-auto animate-fade-in space-y-4">
           {/* Mobile Logo */}
-          <div className="flex items-center gap-3 mb-8 lg:hidden justify-center">
-            <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-gradient-to-tr from-sky-500 to-indigo-600 shadow-md">
-              <Map size={20} className="text-white" />
-            </div>
-            <span className="text-2xl font-extrabold text-slate-900 font-outfit">ScoutWay</span>
+          <div className="flex items-center gap-3 mb-4 lg:hidden justify-center">
+            <img src="/logo.png" alt="ScoutWay Logo" className="w-9 h-9 object-contain drop-shadow-xs" />
+            <span className="text-xl font-extrabold text-slate-900 font-outfit">ScoutWay</span>
           </div>
 
+
           {/* Header */}
-          <div className="mb-8 text-center sm:text-left">
-            <h2 className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight font-outfit">
+          <div className="mb-4 text-center sm:text-left">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-1 tracking-tight font-outfit">
               Create Account
             </h2>
-            <p className="text-slate-500 text-sm font-medium">Join thousands of travel story enthusiasts</p>
+            <p className="text-slate-500 text-xs sm:text-sm font-medium">Join thousands of travel story enthusiasts</p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleRegister} className="auth-form">
-            <div className="form-group">
-              <label htmlFor="register-name">Full Name</label>
+          <form onSubmit={handleRegister} className="space-y-3">
+            <div className="form-group mb-0">
+              <label htmlFor="register-name" className="text-xs font-bold mb-1 block">Full Name</label>
 
               <div className="relative">
                 <User
-                  size={16}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10"
+                  size={15}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10"
                 />
                 <input
                   id="register-name"
                   value={form.name}
                   onChange={e => set('name', e.target.value)}
                   placeholder="Your full name"
-                  className="input-field !pl-11"
+                  className="input-field !pl-10 !py-2 text-xs sm:text-sm"
                   required
                 />
               </div>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="register-email">Email Address</label>
+            <div className="form-group mb-0">
+              <label htmlFor="register-email" className="text-xs font-bold mb-1 block">Email Address</label>
 
               <div className="relative">
                 <Mail
-                  size={16}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10"
+                  size={15}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10"
                 />
                 <input
                   id="register-email"
@@ -134,19 +123,19 @@ const RegisterPage = () => {
                   value={form.email}
                   onChange={e => set('email', e.target.value)}
                   placeholder="you@example.com"
-                  className="input-field !pl-11"
+                  className="input-field !pl-10 !py-2 text-xs sm:text-sm"
                   required
                 />
               </div>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="register-password">Password</label>
+            <div className="form-group mb-0">
+              <label htmlFor="register-password" className="text-xs font-bold mb-1 block">Password</label>
 
               <div className="relative">
                 <Lock
-                  size={16}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10"
+                  size={15}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10"
                 />
 
                 <input
@@ -155,50 +144,49 @@ const RegisterPage = () => {
                   value={form.password}
                   onChange={e => set('password', e.target.value)}
                   placeholder="Minimum 6 characters"
-                  className="input-field !pl-11 !pr-12"
+                  className="input-field !pl-10 !pr-10 !py-2 text-xs sm:text-sm"
                   required
                 />
 
                 <button
                   type="button"
                   onClick={() => setShowPass(s => !s)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1 flex items-center justify-center"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1 flex items-center justify-center"
                   title={showPass ? 'Hide password' : 'Show password'}
                 >
-                  {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
 
               {/* Password Complexity Checklist Pills */}
               {form.password.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 pt-2">
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${passChecks.length ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>
+                <div className="flex flex-wrap gap-1 pt-1.5">
+                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${passChecks.length ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>
                     {passChecks.length ? '✓ 6+ Chars' : '• 6+ Chars'}
                   </span>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${passChecks.upper ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>
+                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${passChecks.upper ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>
                     {passChecks.upper ? '✓ Upper A-Z' : '• Upper A-Z'}
                   </span>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${passChecks.lower ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>
+                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${passChecks.lower ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>
                     {passChecks.lower ? '✓ Lower a-z' : '• Lower a-z'}
                   </span>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${passChecks.number ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>
+                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${passChecks.number ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>
                     {passChecks.number ? '✓ Number 0-9' : '• Number 0-9'}
                   </span>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${passChecks.special ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>
+                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${passChecks.special ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>
                     {passChecks.special ? '✓ Special (!@#)' : '• Special (!@#)'}
                   </span>
                 </div>
               )}
             </div>
 
-
-            <div className="form-group">
-              <label htmlFor="register-confirm">Confirm Password</label>
+            <div className="form-group mb-0">
+              <label htmlFor="register-confirm" className="text-xs font-bold mb-1 block">Confirm Password</label>
 
               <div className="relative">
                 <Lock
-                  size={16}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10"
+                  size={15}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10"
                 />
 
                 <input
@@ -206,8 +194,8 @@ const RegisterPage = () => {
                   type="password"
                   value={form.confirmPassword}
                   onChange={e => set('confirmPassword', e.target.value)}
-                  placeholder="Re-enter your password"
-                  className="input-field !pl-11"
+                  placeholder="Re-enter password"
+                  className="input-field !pl-10 !py-2 text-xs sm:text-sm"
                   required
                 />
               </div>
@@ -216,11 +204,11 @@ const RegisterPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full mt-2"
+              className="btn-primary w-full !py-2.5 mt-3 text-xs sm:text-sm font-extrabold"
             >
               {loading ? (
                 <span className="inline-flex items-center gap-2">
-                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   <span>Creating account...</span>
                 </span>
               ) : (
@@ -229,25 +217,8 @@ const RegisterPage = () => {
             </button>
           </form>
 
-
-          {/* Divider */}
-          <div className="auth-divider">
-            <span>Or</span>
-          </div>
-
-          {/* Google */}
-          <button onClick={handleGoogle} className="social-btn">
-            <svg width="18" height="18" viewBox="0 0 18 18">
-              <path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z" />
-              <path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17z" />
-              <path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18l2.67-2.07z" />
-              <path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.3z" />
-            </svg>
-            <span>Continue with Google</span>
-          </button>
-
           {/* Bottom link */}
-          <p className="text-center text-xs sm:text-sm text-slate-500 mt-8">
+          <p className="text-center text-xs text-slate-500 pt-2">
             Already have an account?{' '}
             <Link to="/login" className="font-extrabold text-sky-600 hover:underline">
               Sign in
@@ -260,6 +231,7 @@ const RegisterPage = () => {
 };
 
 export default RegisterPage;
+
 
 
 

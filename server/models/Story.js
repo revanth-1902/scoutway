@@ -13,6 +13,19 @@ const dayItinerarySchema = new mongoose.Schema({
   activities: [activitySchema],
 });
 
+const replySchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  text: { type: String, required: true, trim: true },
+  createdAt: { type: Date, default: Date.now },
+});
+
+const commentSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  text: { type: String, required: true, trim: true },
+  replies: [replySchema],
+  createdAt: { type: Date, default: Date.now },
+});
+
 const storySchema = new mongoose.Schema(
   {
     userId: {
@@ -66,6 +79,7 @@ const storySchema = new mongoose.Schema(
     activities: [activitySchema],
     daysItinerary: [dayItinerarySchema],
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    comments: [commentSchema],
     isPublic: { type: Boolean, default: true },
   },
   { timestamps: true }
@@ -75,4 +89,5 @@ const storySchema = new mongoose.Schema(
 storySchema.index({ title: 'text', description: 'text', place: 'text', fromPlace: 'text' });
 
 module.exports = mongoose.model('Story', storySchema);
+
 

@@ -33,7 +33,10 @@ router.get('/', async (req, res) => {
 // GET /api/stories/:id — Get single story
 router.get('/:id', async (req, res) => {
   try {
-    const story = await Story.findById(req.params.id).populate('userId', 'name avatar');
+    const story = await Story.findById(req.params.id)
+      .populate('userId', 'name avatar')
+      .populate('comments.userId', 'name avatar')
+      .populate('comments.replies.userId', 'name avatar');
     if (!story) return res.status(404).json({ message: 'Story not found' });
     res.json({ success: true, story });
   } catch (err) {
@@ -70,8 +73,10 @@ router.post('/', protect, restrictGuest, async (req, res) => {
     }
 
     const cleanedDays = cleanDaysItinerary(daysItinerary);
-
     const cleanedActivities = (activities || []).filter(a => a && a.activityName && a.activityName.trim() !== '');
+
+    const galleryArr = Array.isArray(imageGallery) ? imageGallery.slice(0, 6) : [];
+    const finalCover = coverImage || (galleryArr.length > 0 ? galleryArr[0] : '');
 
     const story = await Story.create({
       userId: req.user._id,
@@ -84,8 +89,8 @@ router.post('/', protect, restrictGuest, async (req, res) => {
       description,
       activities: cleanedActivities,
       daysItinerary: cleanedDays,
-      coverImage: coverImage || '',
-      imageGallery: Array.isArray(imageGallery) ? imageGallery.slice(0, 6) : [],
+      coverImage: finalCover,
+      imageGallery: galleryArr,
     });
 
     const populated = await story.populate('userId', 'name avatar');
@@ -109,6 +114,12 @@ router.put('/:id', protect, restrictGuest, async (req, res) => {
 
     const cleanedDays = daysItinerary ? cleanDaysItinerary(daysItinerary) : story.daysItinerary;
     const cleanedActivities = activities ? (activities || []).filter(a => a && a.activityName && a.activityName.trim() !== '') : story.activities;
+    const galleryArr = Array.isArray(imageGallery) ? imageGallery.slice(0, 6) : story.imageGallery || [];
+
+    let updatedCover = coverImage !== undefined ? coverImage : story.coverImage;
+    if (!updatedCover && galleryArr.length > 0) {
+      updatedCover = galleryArr[0];
+    }
 
     Object.assign(story, {
       title,
@@ -120,20 +131,20 @@ router.put('/:id', protect, restrictGuest, async (req, res) => {
       description,
       activities: cleanedActivities,
       daysItinerary: cleanedDays,
-      coverImage: coverImage !== undefined ? coverImage : story.coverImage,
-      imageGallery: Array.isArray(imageGallery) ? imageGallery.slice(0, 6) : story.imageGallery || [],
+      coverImage: updatedCover,
+      imageGallery: galleryArr,
     });
     await story.save();
 
-    const populated = await story.populate('userId', 'name avatar');
+    const populated = await story
+      .populate('userId', 'name avatar')
+      .populate('comments.userId', 'name avatar')
+      .populate('comments.replies.userId', 'name avatar');
     res.json({ success: true, story: populated });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 });
-
-
-
 
 // DELETE /api/stories/:id — Delete story (author only)
 router.delete('/:id', protect, restrictGuest, async (req, res) => {
@@ -145,7 +156,6 @@ router.delete('/:id', protect, restrictGuest, async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to delete this story' });
     }
 
-    // Delete image from cloudinary if exists
     if (story.coverImagePublicId) {
       await cloudinary.uploader.destroy(story.coverImagePublicId);
     }
@@ -179,6 +189,68 @@ router.patch('/:id/like', protect, restrictGuest, async (req, res) => {
   }
 });
 
+// POST /api/stories/:id/comments — Add comment/doubt
+router.post('/:id/comments', protect, restrictGuest, async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text || !text.trim()) {
+      return res.status(400).json({ message: 'Comment text is required' });
+    }
+
+    const story = await Story.findById(req.params.id);
+    if (!story) return res.status(404).json({ message: 'Story not found' });
+
+    story.comments.push({
+      userId: req.user._id,
+      text: text.trim(),
+      replies: [],
+    });
+
+    await story.save();
+
+    const updated = await Story.findById(req.params.id)
+      .populate('userId', 'name avatar')
+      .populate('comments.userId', 'name avatar')
+      .populate('comments.replies.userId', 'name avatar');
+
+    res.status(201).json({ success: true, story: updated });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// POST /api/stories/:id/comments/:commentId/reply — Reply to comment/doubt
+router.post('/:id/comments/:commentId/reply', protect, restrictGuest, async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text || !text.trim()) {
+      return res.status(400).json({ message: 'Reply text is required' });
+    }
+
+    const story = await Story.findById(req.params.id);
+    if (!story) return res.status(404).json({ message: 'Story not found' });
+
+    const comment = story.comments.id(req.params.commentId);
+    if (!comment) return res.status(404).json({ message: 'Comment not found' });
+
+    comment.replies.push({
+      userId: req.user._id,
+      text: text.trim(),
+    });
+
+    await story.save();
+
+    const updated = await Story.findById(req.params.id)
+      .populate('userId', 'name avatar')
+      .populate('comments.userId', 'name avatar')
+      .populate('comments.replies.userId', 'name avatar');
+
+    res.status(201).json({ success: true, story: updated });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // POST /api/stories/:id/image — Upload cover image
 router.post('/:id/image', protect, restrictGuest, upload.single('image'), async (req, res) => {
   try {
@@ -188,7 +260,6 @@ router.post('/:id/image', protect, restrictGuest, upload.single('image'), async 
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    // Delete old image if exists
     if (story.coverImagePublicId) {
       await cloudinary.uploader.destroy(story.coverImagePublicId);
     }
@@ -204,3 +275,4 @@ router.post('/:id/image', protect, restrictGuest, upload.single('image'), async 
 });
 
 module.exports = router;
+

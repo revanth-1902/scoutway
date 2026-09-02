@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 
-import { getStory, deleteStory, likeStory } from '../services/api';
+import { getStory, deleteStory, likeStory, addComment, replyComment } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { format } from 'date-fns';
-import { ArrowLeft, MapPin, Calendar, Heart, Edit, Trash2, DollarSign, Navigation, ArrowRight, Users, Clock, Compass } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Heart, Edit, Trash2, DollarSign, Navigation, ArrowRight, Users, Clock, Compass, MessageSquare, Send, CornerDownRight } from 'lucide-react';
 import StoryForm from '../components/StoryForm';
 import toast from 'react-hot-toast';
 
@@ -24,6 +24,13 @@ const StoryDetailPage = () => {
   const [likeCount, setLikeCount] = useState(0);
   const [showEdit, setShowEdit] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Comment & Doubt states
+  const [commentText, setCommentText] = useState('');
+  const [submittingComment, setSubmittingComment] = useState(false);
+  const [replyingCommentId, setReplyingCommentId] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const [submittingReply, setSubmittingReply] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -68,8 +75,45 @@ const StoryDetailPage = () => {
     }
   };
 
+  const handleAddComment = async (e) => {
+    e.preventDefault();
+    if (isGuest) { toast.error('Sign up to ask questions or post doubts!'); return; }
+    if (!commentText.trim()) return;
+    setSubmittingComment(true);
+    try {
+      const res = await addComment(id, { text: commentText.trim() });
+      setStory(res.data.story);
+      setCommentText('');
+      toast.success('Question / Doubt posted!');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to post comment');
+    } finally {
+      setSubmittingComment(false);
+    }
+  };
+
+  const handleReplyComment = async (commentId) => {
+    if (isGuest) { toast.error('Sign up to reply!'); return; }
+    if (!replyText.trim()) return;
+    setSubmittingReply(true);
+    try {
+      const res = await replyComment(id, commentId, { text: replyText.trim() });
+      setStory(res.data.story);
+      setReplyText('');
+      setReplyingCommentId(null);
+      toast.success('Reply posted!');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to post reply');
+    } finally {
+      setSubmittingReply(false);
+    }
+  };
+
   const isAuthor = user?._id === (story?.userId?._id || story?.userId);
-  const coverImg = story?.coverImage || FALLBACK_IMAGES[id?.charCodeAt(0) % FALLBACK_IMAGES.length] || FALLBACK_IMAGES[0];
+  const coverImg = story?.coverImage ||
+    (story?.imageGallery && story.imageGallery.length > 0 ? story.imageGallery[0] : null) ||
+    FALLBACK_IMAGES[id?.charCodeAt(0) % FALLBACK_IMAGES.length] ||
+    FALLBACK_IMAGES[0];
 
   if (loading) {
     return (
@@ -106,14 +150,25 @@ const StoryDetailPage = () => {
   const mapSearchQuery = story.fromPlace ? `${story.fromPlace} to ${story.place}` : story.place;
 
   return (
-    <div className="min-h-screen pb-20 font-sans bg-slate-50">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 animate-fade-in">
+    <div className="min-h-screen pb-20 font-sans bg-slate-950 text-slate-900 relative overflow-hidden">
+      {/* Ambient Full Page Background Cover Image with Custom Opacity & Blur */}
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden" aria-hidden="true">
+        <img
+          src={coverImg}
+          alt=""
+          className="w-full h-full object-cover opacity-30 blur-2xl scale-110 transition-opacity duration-700"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-900/85 to-slate-950/95" />
+      </div>
+
+      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 animate-fade-in">
         {/* Back + author actions */}
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <button onClick={() => navigate(-1)}
-            className="btn-secondary text-xs sm:text-sm py-2 px-4 font-extrabold shadow-xs inline-flex items-center gap-2">
+            className="btn-secondary text-xs sm:text-sm py-2 px-4 font-extrabold shadow-xs inline-flex items-center gap-2 bg-white/90 backdrop-blur-md">
             <ArrowLeft size={16} /> <span>Back to feed</span>
           </button>
+
           {isAuthor && (
             <div className="flex gap-2.5">
               <button onClick={() => setShowEdit(true)}
@@ -387,6 +442,179 @@ const StoryDetailPage = () => {
           </div>
         </div>
 
+        {/* Q&A & Doubts Comments Section below Map */}
+        <div className="bg-white rounded-3xl p-5 sm:p-8 border border-slate-200/90 shadow-sm overflow-hidden mb-8">
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-2 pb-4 border-b border-slate-100">
+            <div>
+              <h3 className="text-xl sm:text-2xl font-extrabold font-outfit text-slate-900 flex items-center gap-2.5">
+                <MessageSquare size={22} className="text-sky-500" />
+                <span>Ask Questions & Quote Doubts</span>
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+                Have a question about this trip route or budget? Ask below and get direct answers from the traveler!
+              </p>
+            </div>
+            <span className="text-xs font-extrabold text-sky-700 bg-sky-50 border border-sky-200 px-3 py-1.5 rounded-full">
+              {story.comments?.length || 0} {story.comments?.length === 1 ? 'Question' : 'Questions'}
+            </span>
+          </div>
+
+          {/* Form to Post New Question / Doubt */}
+          <form onSubmit={handleAddComment} className="mb-8 space-y-3">
+            <div className="relative">
+              <textarea
+                value={commentText}
+                onChange={e => setCommentText(e.target.value)}
+                placeholder={isGuest ? "Sign up to post a question or quote your doubt..." : "Quote your doubt or ask a question about this trip..."}
+                disabled={isGuest}
+                rows={3}
+                className="w-full p-4 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs sm:text-sm font-medium bg-slate-50/50 disabled:bg-slate-100 disabled:cursor-not-allowed resize-y"
+              />
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                disabled={submittingComment || isGuest || !commentText.trim()}
+                className="btn-primary py-2.5 px-5 text-xs sm:text-sm font-extrabold inline-flex items-center gap-2 disabled:opacity-50"
+              >
+                <Send size={14} />
+                <span>{submittingComment ? 'Posting...' : 'Post Question'}</span>
+              </button>
+            </div>
+          </form>
+
+          {/* Comments / Doubts Threads List */}
+          <div className="space-y-6">
+            {!story.comments || story.comments.length === 0 ? (
+              <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                <MessageSquare size={28} className="mx-auto text-slate-300 mb-2" />
+                <p className="text-xs sm:text-sm font-bold text-slate-600">No questions posted yet</p>
+                <p className="text-xs text-slate-400 mt-1">Be the first to quote your doubt or ask a question about this trip!</p>
+              </div>
+            ) : (
+              story.comments.map((comment) => {
+                const commentAuthorName = comment.userId?.name || 'User';
+                const commentAuthorAvatar = comment.userId?.avatar;
+                const isCommentByAuthor = (comment.userId?._id || comment.userId) === (story.userId?._id || story.userId);
+                const isReplying = replyingCommentId === comment._id;
+
+                return (
+                  <div key={comment._id} className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                          {commentAuthorAvatar ? (
+                            <img src={commentAuthorAvatar} alt={commentAuthorName} className="w-full h-full object-cover rounded-full" />
+                          ) : (
+                            <span>{commentAuthorName[0]?.toUpperCase()}</span>
+                          )}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs sm:text-sm font-extrabold text-slate-900">{commentAuthorName}</span>
+                            {isCommentByAuthor && (
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-sky-600 text-white shadow-2xs">
+                                Author ✈️
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[11px] font-medium text-slate-400">
+                            {comment.createdAt ? format(new Date(comment.createdAt), 'MMM d, yyyy • h:mm a') : 'Just now'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (isReplying) {
+                            setReplyingCommentId(null);
+                            setReplyText('');
+                          } else {
+                            setReplyingCommentId(comment._id);
+                            setReplyText('');
+                          }
+                        }}
+                        className="inline-flex items-center gap-1 px-3 py-1 rounded-xl text-xs font-extrabold text-sky-700 bg-sky-100/80 hover:bg-sky-200 transition-colors"
+                      >
+                        <CornerDownRight size={12} />
+                        <span>{isReplying ? 'Cancel' : 'Reply'}</span>
+                      </button>
+                    </div>
+
+                    {/* Question / Doubt Text */}
+                    <p className="text-xs sm:text-sm text-slate-700 font-normal leading-relaxed pl-11 whitespace-pre-wrap">
+                      {comment.text}
+                    </p>
+
+                    {/* Threaded Replies List */}
+                    {comment.replies?.length > 0 && (
+                      <div className="pl-11 space-y-3 pt-2 border-t border-slate-200/60">
+                        {comment.replies.map((reply, rIdx) => {
+                          const replyAuthorName = reply.userId?.name || 'User';
+                          const replyAuthorAvatar = reply.userId?.avatar;
+                          const isReplyByAuthor = (reply.userId?._id || reply.userId) === (story.userId?._id || story.userId);
+
+                          return (
+                            <div key={rIdx} className="p-3 rounded-xl bg-white border border-slate-200/90 space-y-1.5">
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 text-white font-bold text-[10px] flex items-center justify-center shrink-0">
+                                  {replyAuthorAvatar ? (
+                                    <img src={replyAuthorAvatar} alt={replyAuthorName} className="w-full h-full object-cover rounded-full" />
+                                  ) : (
+                                    <span>{replyAuthorName[0]?.toUpperCase()}</span>
+                                  )}
+                                </div>
+                                <span className="text-xs font-bold text-slate-900">{replyAuthorName}</span>
+                                {isReplyByAuthor && (
+                                  <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-sky-600 text-white">
+                                    Author ✈️
+                                  </span>
+                                )}
+                                <span className="text-[10px] text-slate-400 ml-auto">
+                                  {reply.createdAt ? format(new Date(reply.createdAt), 'MMM d, h:mm a') : 'Just now'}
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-700 font-normal leading-relaxed pl-8">
+                                {reply.text}
+                              </p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Inline Reply Form */}
+                    {isReplying && (
+                      <div className="pl-11 pt-2 animate-fade-in space-y-2">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={replyText}
+                            onChange={e => setReplyText(e.target.value)}
+                            placeholder={`Reply to ${commentAuthorName}...`}
+                            className="flex-1 p-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs font-medium"
+                            autoFocus
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleReplyComment(comment._id)}
+                            disabled={submittingReply || !replyText.trim()}
+                            className="btn-primary py-2 px-4 text-xs font-extrabold inline-flex items-center gap-1 disabled:opacity-50"
+                          >
+                            <Send size={12} />
+                            <span>{submittingReply ? 'Sending...' : 'Reply'}</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
       </div>
 
       {/* Edit modal */}
@@ -402,6 +630,7 @@ const StoryDetailPage = () => {
 };
 
 export default StoryDetailPage;
+
 
 
 
