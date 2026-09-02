@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Map, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { login as apiLogin, guestLogin } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import logoImg from '../assets/logo.png';
 import toast from 'react-hot-toast';
 
 const AUTH_IMG = 'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=900&auto=format&q=80';
@@ -52,7 +53,7 @@ const LoginPage = () => {
         <img src={AUTH_IMG} alt="Travel" className="w-full h-full object-cover opacity-60" />
         <div className="absolute inset-0 flex flex-col items-center justify-center p-12 text-center bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent">
           <div className="flex items-center gap-3 mb-8">
-            <img src="/logo.png" alt="ScoutWay Logo" className="w-12 h-12 object-contain drop-shadow-md" />
+            <img src={logoImg} alt="ScoutWay Logo" className="w-12 h-12 object-contain drop-shadow-md" />
             <span className="text-3xl font-extrabold text-white tracking-tight font-outfit">
               ScoutWay
             </span>
@@ -71,9 +72,10 @@ const LoginPage = () => {
         <div className="w-full max-w-md my-auto animate-fade-in">
           {/* Mobile Logo */}
           <div className="flex items-center gap-3 mb-8 lg:hidden justify-center">
-            <img src="/logo.png" alt="ScoutWay Logo" className="w-10 h-10 object-contain drop-shadow-xs" />
+            <img src={logoImg} alt="ScoutWay Logo" className="w-10 h-10 object-contain drop-shadow-xs" />
             <span className="text-2xl font-extrabold text-slate-900 font-outfit">ScoutWay</span>
           </div>
+
 
 
           {/* Header */}

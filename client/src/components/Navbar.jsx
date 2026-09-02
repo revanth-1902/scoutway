@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Search, LogOut, PlusCircle, Map } from 'lucide-react';
+import { Search, LogOut, PlusCircle } from 'lucide-react';
+import logoImg from '../assets/logo.png';
 import toast from 'react-hot-toast';
 
 const Navbar = ({ searchQuery, onSearch, onAddStory }) => {
@@ -34,14 +35,15 @@ const Navbar = ({ searchQuery, onSearch, onAddStory }) => {
           {/* Logo */}
           <Link to="/home" className="flex items-center gap-2.5 shrink-0 group">
             <img
-              src="/logo.png"
+              src={logoImg}
               alt="ScoutWay Logo"
-              className="w-9 h-9 object-contain group-hover:scale-105 transition-transform duration-300 drop-shadow-xs"
+              className="w-10 h-10 object-contain group-hover:scale-105 transition-transform duration-300 drop-shadow-xs"
             />
             <span className="font-extrabold text-xl hidden xs:inline-block tracking-tight font-outfit bg-gradient-to-r from-slate-900 via-sky-950 to-indigo-950 bg-clip-text text-transparent">
               ScoutWay
             </span>
           </Link>
+
 
 
           {/* Search Bar */}

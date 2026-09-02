@@ -15,9 +15,10 @@ const getStoryTotalCost = (story) => {
   let totalCost = 0;
   const parseCost = (costStr) => {
     if (!costStr || costStr === '-') return 0;
-    const num = parseFloat(String(costStr).replace(/[^0-9.]/g, ''));
+    const num = Math.abs(parseFloat(String(costStr).replace(/[^0-9.]/g, '')));
     return isNaN(num) ? 0 : num;
   };
+
   if (story.daysItinerary?.length) {
     story.daysItinerary.forEach((day) => {
       day.activities?.forEach((act) => {

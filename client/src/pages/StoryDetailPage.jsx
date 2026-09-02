@@ -131,19 +131,31 @@ const StoryDetailPage = () => {
 
   if (!story) return null;
 
+  const formatCostValue = (costStr) => {
+    if (!costStr || costStr === '-' || costStr === '-0' || costStr === '0') return '—';
+    const cleanStr = String(costStr).replace(/-/g, '').trim();
+    const num = parseFloat(cleanStr);
+    if (isNaN(num) || num === 0) return '—';
+    return num.toLocaleString('en-IN');
+  };
+
   // Calculate total cost from flat activities or daysItinerary
   let totalCost = 0;
+  const parseCost = (costStr) => {
+    if (!costStr || costStr === '-') return 0;
+    const num = Math.abs(parseFloat(String(costStr).replace(/[^0-9.]/g, '')));
+    return isNaN(num) ? 0 : num;
+  };
+
   if (story.daysItinerary?.length) {
     story.daysItinerary.forEach(d => {
       d.activities?.forEach(a => {
-        const val = parseFloat(a.cost);
-        if (!isNaN(val)) totalCost += val;
+        totalCost += parseCost(a.cost);
       });
     });
   } else if (story.activities?.length) {
     story.activities.forEach(a => {
-      const val = parseFloat(a.cost);
-      if (!isNaN(val)) totalCost += val;
+      totalCost += parseCost(a.cost);
     });
   }
 
@@ -316,45 +328,48 @@ const StoryDetailPage = () => {
 
                       {/* Sub-Threads (Activity Branches) */}
                       <div className="pl-6 sm:pl-8 space-y-3.5 relative">
-                        {day.activities?.map((act, actIdx) => (
-                          <div key={actIdx} className="relative pl-4">
-                            {/* Sub-Thread Curved Branch Connector Line */}
-                            <div className="sub-thread-connector" />
+                        {day.activities?.map((act, actIdx) => {
+                          const formattedCost = formatCostValue(act.cost);
+                          return (
+                            <div key={actIdx} className="relative pl-4">
+                              {/* Sub-Thread Curved Branch Connector Line */}
+                              <div className="sub-thread-connector" />
 
-                            {/* Activity Thread Card */}
-                            <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/90 shadow-2xs thread-card-interactive flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                              <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
-                                <span className="w-6 h-6 rounded-full bg-sky-50 text-sky-600 border border-sky-200 flex items-center justify-center text-xs font-extrabold shrink-0 mt-0.5 sm:mt-0">
-                                  {actIdx + 1}
-                                </span>
-                                <div className="space-y-1 min-w-0 flex-1">
-                                  <div className="flex items-center gap-2 flex-wrap">
-                                    <span className="text-xs sm:text-base font-bold text-slate-900 leading-snug">
-                                      {act.activityName}
-                                    </span>
-                                    {act.time && (
-                                      <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-sky-700 bg-sky-50 border border-sky-200/80 px-2.5 py-0.5 rounded-full shadow-2xs">
-                                        <Clock size={11} className="text-sky-500" />
-                                        <span>{act.time}</span>
+                              {/* Activity Thread Card */}
+                              <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/90 shadow-2xs thread-card-interactive flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                                  <span className="w-6 h-6 rounded-full bg-sky-50 text-sky-600 border border-sky-200 flex items-center justify-center text-xs font-extrabold shrink-0 mt-0.5 sm:mt-0">
+                                    {actIdx + 1}
+                                  </span>
+                                  <div className="space-y-1 min-w-0 flex-1">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <span className="text-xs sm:text-base font-bold text-slate-900 leading-snug">
+                                        {act.activityName}
                                       </span>
-                                    )}
+                                      {act.time && (
+                                        <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-sky-700 bg-sky-50 border border-sky-200/80 px-2.5 py-0.5 rounded-full shadow-2xs">
+                                          <Clock size={11} className="text-sky-500" />
+                                          <span>{act.time}</span>
+                                        </span>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
 
-                              <div className="flex items-center justify-between sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 shrink-0">
-                                <span className={`cost-badge shrink-0 ${act.cost === '-' ? 'no-cost' : 'has-cost'}`}>
-                                  {act.cost === '-' ? '—' : (
-                                    <>
-                                      <span className="font-extrabold text-xs">₹</span>
-                                      <span>{act.cost}</span>
-                                    </>
-                                  )}
-                                </span>
+                                <div className="flex items-center justify-between sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 shrink-0">
+                                  <span className={`cost-badge shrink-0 ${formattedCost === '—' ? 'no-cost' : 'has-cost'}`}>
+                                    {formattedCost === '—' ? '—' : (
+                                      <>
+                                        <span className="font-extrabold text-xs">₹</span>
+                                        <span>{formattedCost}</span>
+                                      </>
+                                    )}
+                                  </span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   ))}
@@ -367,29 +382,33 @@ const StoryDetailPage = () => {
                   🗓️ Activity Log
                 </h3>
                 <div className="activity-timeline">
-                  {story.activities.map((act, i) => (
-                    <div key={i} className="timeline-item">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <span className="w-7 h-7 rounded-full inline-flex items-center justify-center text-xs font-extrabold text-white shrink-0 bg-gradient-to-tr from-sky-500 via-sky-600 to-indigo-600 shadow-xs">
-                            {i + 1}
+                  {story.activities.map((act, i) => {
+                    const formattedCost = formatCostValue(act.cost);
+                    return (
+                      <div key={i} className="timeline-item">
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <span className="w-7 h-7 rounded-full inline-flex items-center justify-center text-xs font-extrabold text-white shrink-0 bg-gradient-to-tr from-sky-500 via-sky-600 to-indigo-600 shadow-xs">
+                              {i + 1}
+                            </span>
+                            <span className="text-xs sm:text-base font-bold text-slate-800 truncate">{act.activityName}</span>
+                          </div>
+                          <span className={`cost-badge shrink-0 ${formattedCost === '—' ? 'no-cost' : 'has-cost'}`}>
+                            {formattedCost === '—' ? '—' : (
+                              <>
+                                <span className="font-extrabold text-xs">₹</span>
+                                <span>{formattedCost}</span>
+                              </>
+                            )}
                           </span>
-                          <span className="text-xs sm:text-base font-bold text-slate-800 truncate">{act.activityName}</span>
                         </div>
-                        <span className={`cost-badge shrink-0 ${act.cost === '-' ? 'no-cost' : 'has-cost'}`}>
-                          {act.cost === '-' ? '—' : (
-                            <>
-                              <span className="font-extrabold text-xs">₹</span>
-                              <span>{act.cost}</span>
-                            </>
-                          )}
-                        </span>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
+
 
             {/* Trip Photo Gallery (Up to 6 Photos) */}
             {story.imageGallery?.length > 0 && (
