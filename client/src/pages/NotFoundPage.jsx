@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
-import { Map, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
+import logoImg from '../assets/logo.png';
 
 const NotFoundPage = () => (
   <div className="min-h-screen flex flex-col items-center justify-center text-center px-6 bg-slate-950 text-white font-sans">
-    <div className="w-24 h-24 rounded-3xl flex items-center justify-center mb-6 bg-gradient-to-tr from-sky-500 to-indigo-600 shadow-xl shadow-sky-500/20 shrink-0">
-      <Map size={44} className="text-white" />
-    </div>
+    <img src={logoImg} alt="ScoutWay" className="w-24 h-24 object-contain mb-6 drop-shadow-xl" />
+
     <h1 className="text-8xl font-black mb-2 tracking-tight text-white font-outfit">404</h1>
     <h2 className="text-2xl sm:text-3xl font-extrabold mb-3 text-sky-400 font-outfit">
       Route Not Found

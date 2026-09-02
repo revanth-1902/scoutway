@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Star, Globe, Compass, BookOpen, ChevronDown, Sparkles, Shield, TrendingUp } from 'lucide-react';
+import { ArrowRight, Star, Globe, Compass, BookOpen, ChevronDown, Sparkles, Shield, TrendingUp, Map } from 'lucide-react';
 import logoImg from '../assets/logo.png';
+
 
 const HERO_BG = 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1920&auto=format&q=85';
 const FEATURE_IMAGES = [
@@ -271,11 +272,10 @@ const LandingPage = () => {
       <footer className="py-8 px-4 sm:px-8 bg-slate-950 border-t border-slate-900 text-slate-400 text-sm">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-sky-500 text-white font-bold">
-              <Map size={16} />
-            </div>
+            <img src={logoImg} alt="ScoutWay" className="w-8 h-8 object-contain drop-shadow-xs" />
             <span className="font-extrabold text-white text-base font-outfit">ScoutWay</span>
           </div>
+
 
           <p className="text-slate-400 text-xs sm:text-sm">
             © {new Date().getFullYear()} ScoutWay — <em>Where every trip becomes a story.</em>
