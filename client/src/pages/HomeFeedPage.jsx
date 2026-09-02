@@ -316,11 +316,11 @@ const HomeFeedPage = () => {
 
         {/* Main Feed Container */}
         <div className="flex gap-8 items-start">
-          {/* YouTube Video-Style Story Grid — 4 to 5 Columns */}
+          {/* YouTube Video-Style Story Grid — 4 Side-by-Side Cards Columns */}
           <div className="flex-1 w-full min-w-0">
             {loading ? (
-              <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${showCalendar ? 'lg:grid-cols-4' : 'lg:grid-cols-4 xl:grid-cols-5'} gap-4 sm:gap-6 items-stretch`}>
-                {[...Array(10)].map((_, i) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 sm:gap-6 items-stretch">
+                {[...Array(8)].map((_, i) => (
                   <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-xs animate-pulse flex flex-col h-80 border border-slate-200">
                     <div className="h-44 bg-slate-200/80 w-full aspect-video" />
                     <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
@@ -338,7 +338,7 @@ const HomeFeedPage = () => {
             ) : displayedStories.length === 0 ? (
               <EmptyState onAdd={handleAddClick} isGuest={isGuest} />
             ) : (
-              <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${showCalendar ? 'lg:grid-cols-4' : 'lg:grid-cols-4 xl:grid-cols-5'} gap-4 sm:gap-6 items-stretch`}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 sm:gap-6 items-stretch">
                 {displayedStories.map(story => (
                   <StoryCard
                     key={story._id}
@@ -353,6 +353,7 @@ const HomeFeedPage = () => {
               </div>
             )}
           </div>
+
 
           {/* Desktop Sticky Calendar */}
           {showCalendar && (
