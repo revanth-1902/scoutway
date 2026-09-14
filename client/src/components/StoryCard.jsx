@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Heart, MapPin, Calendar, Navigation, ArrowRight, Clock } from 'lucide-react';
 import { format } from 'date-fns';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { likeStory } from '../services/api';
 import toast from 'react-hot-toast';
@@ -14,6 +14,7 @@ const FALLBACK_IMAGES = [
 ];
 
 const StoryCard = ({ story, onLikeUpdate }) => {
+  const navigate = useNavigate();
   const { user, isGuest } = useAuth();
   const [likes, setLikes] = useState(story.likes?.length || 0);
   const [liked, setLiked] = useState(story.likes?.includes(user?._id));
@@ -79,8 +80,10 @@ const StoryCard = ({ story, onLikeUpdate }) => {
   const handleAuthorClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (story.userId?._id) {
-      onLikeUpdate?.('AUTHOR_FILTER', { userId: story.userId._id, name: story.userId.name });
+    const uId = story.userId?._id || story.userId;
+    if (uId) {
+      onLikeUpdate?.('AUTHOR_FILTER', { userId: uId, name: story.userId?.name });
+      navigate(`/home?userId=${uId}&authorName=${encodeURIComponent(story.userId?.name || '')}`);
     }
   };
 

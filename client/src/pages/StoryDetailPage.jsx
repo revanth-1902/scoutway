@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { format } from 'date-fns';
 import { ArrowLeft, MapPin, Calendar, Heart, Edit, Trash2, DollarSign, Navigation, ArrowRight, Users, Clock, Compass, MessageSquare, Send, CornerDownRight } from 'lucide-react';
 import StoryForm from '../components/StoryForm';
+import YouTubePlaceVideos from '../components/YouTubePlaceVideos';
 import toast from 'react-hot-toast';
 
 const FALLBACK_IMAGES = [
@@ -168,9 +169,9 @@ const StoryDetailPage = () => {
         <img
           src={coverImg}
           alt=""
-          className="w-full h-full object-cover opacity-30 blur-2xl scale-110 transition-opacity duration-700"
+          className="w-full h-full object-cover opacity-45 blur-xl scale-110 transition-all duration-700"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-900/85 to-slate-950/95" />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/60 via-slate-900/80 to-slate-950/95" />
       </div>
 
       <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 animate-fade-in">
@@ -256,9 +257,9 @@ const StoryDetailPage = () => {
               {/* Author Badge */}
               {story.userId?.name && (
                 <Link
-                  to={`/home?search=${encodeURIComponent(story.userId.name)}`}
+                  to={`/home?userId=${story.userId._id || story.userId}&authorName=${encodeURIComponent(story.userId.name)}`}
                   className="inline-flex items-center gap-2 text-xs sm:text-sm text-slate-700 hover:text-sky-600 font-bold bg-slate-100/90 hover:bg-sky-50 px-3.5 py-1.5 rounded-full border border-slate-200/80 transition-colors"
-                  title={`View all stories posted by ${story.userId.name}`}
+                  title={`View all places and stories posted by ${story.userId.name}`}
                 >
                   <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 bg-gradient-to-tr from-sky-500 to-indigo-600 shadow-2xs">
                     {story.userId.name[0]?.toUpperCase()}
@@ -460,6 +461,9 @@ const StoryDetailPage = () => {
             ></iframe>
           </div>
         </div>
+
+        {/* YouTube 3 Related Place Videos Section */}
+        <YouTubePlaceVideos place={story.place} />
 
         {/* Q&A & Doubts Comments Section below Map */}
         <div className="bg-white rounded-3xl p-5 sm:p-8 border border-slate-200/90 shadow-sm overflow-hidden mb-8">

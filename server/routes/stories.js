@@ -4,11 +4,23 @@ const Story = require('../models/Story');
 const { protect, restrictGuest } = require('../middleware/auth');
 const { upload, cloudinary } = require('../config/cloudinary');
 
-// GET /api/stories — Get all public stories with search & date filter
+// GET /api/stories — Get all public stories with search, userId, place & date filter
 router.get('/', async (req, res) => {
   try {
-    const { search, startDate, endDate } = req.query;
+    const { search, startDate, endDate, userId, user, place } = req.query;
     let query = { isPublic: true };
+
+    const targetUserId = userId || user;
+    if (targetUserId) {
+      query.userId = targetUserId;
+    }
+
+    if (place) {
+      query.$or = [
+        { place: { $regex: place, $options: 'i' } },
+        { fromPlace: { $regex: place, $options: 'i' } }
+      ];
+    }
 
     if (search) {
       query.$text = { $search: search };

@@ -39,17 +39,28 @@ const HomeFeedPage = () => {
   const { isGuest } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
+  const urlUserId = searchParams.get('userId');
+  const urlAuthorName = searchParams.get('authorName');
+
   const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [dateRange, setDateRange] = useState(null);
-  const [authorFilter, setAuthorFilter] = useState(null);
+  const [authorFilter, setAuthorFilter] = useState(
+    urlUserId ? { userId: urlUserId, name: urlAuthorName || 'User' } : null
+  );
   const [showForm, setShowForm] = useState(searchParams.get('add') === 'true');
   const [showCalendar, setShowCalendar] = useState(false);
 
-  // New filters: Place filter & Money Range sort option
+  // Filter & Sort options
   const [selectedPlace, setSelectedPlace] = useState('');
   const [sortOption, setSortOption] = useState('newest'); // 'newest' | 'cost-asc' | 'cost-desc' | 'likes-desc'
+
+  useEffect(() => {
+    if (urlUserId) {
+      setAuthorFilter({ userId: urlUserId, name: urlAuthorName || 'User' });
+    }
+  }, [urlUserId, urlAuthorName]);
 
   const fetchStories = useCallback(async () => {
     setLoading(true);
@@ -58,6 +69,11 @@ const HomeFeedPage = () => {
       if (searchQuery) params.search = searchQuery;
       if (dateRange?.start) params.startDate = dateRange.start.toISOString();
       if (dateRange?.end) params.endDate = dateRange.end.toISOString();
+      
+      const currentUserId = urlUserId || authorFilter?.userId;
+      if (currentUserId) params.userId = currentUserId;
+      if (selectedPlace) params.place = selectedPlace;
+
       const res = await getStories(params);
       setStories(res.data.stories);
     } catch {
@@ -65,7 +81,7 @@ const HomeFeedPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, dateRange]);
+  }, [searchQuery, dateRange, urlUserId, authorFilter?.userId, selectedPlace]);
 
   useEffect(() => {
     const timer = setTimeout(fetchStories, 350);
@@ -75,7 +91,9 @@ const HomeFeedPage = () => {
   useEffect(() => {
     if (searchParams.get('add') === 'true') {
       setShowForm(true);
-      setSearchParams({}, { replace: true });
+      const updated = new URLSearchParams(searchParams);
+      updated.delete('add');
+      setSearchParams(updated, { replace: true });
     }
   }, [searchParams, setSearchParams]);
 
@@ -89,6 +107,12 @@ const HomeFeedPage = () => {
 
   const clearAuthorFilter = () => {
     setAuthorFilter(null);
+    if (searchParams.has('userId') || searchParams.has('authorName')) {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('userId');
+      newParams.delete('authorName');
+      setSearchParams(newParams, { replace: true });
+    }
   };
 
   const handleAddClick = () => {
@@ -118,8 +142,12 @@ const HomeFeedPage = () => {
   const displayedStories = useMemo(() => {
     let list = [...stories];
 
-    if (authorFilter) {
-      list = list.filter(s => s.userId?._id === authorFilter.userId || s.userId?.name?.toLowerCase() === authorFilter.name?.toLowerCase());
+    const currentUserId = urlUserId || authorFilter?.userId;
+    if (currentUserId) {
+      list = list.filter(s =>
+        (s.userId?._id || s.userId) === currentUserId ||
+        s.userId?.name?.toLowerCase() === (authorFilter?.name || urlAuthorName)?.toLowerCase()
+      );
     }
 
     if (selectedPlace) {
@@ -140,7 +168,7 @@ const HomeFeedPage = () => {
     }
 
     return list;
-  }, [stories, authorFilter, selectedPlace, sortOption]);
+  }, [stories, authorFilter, urlUserId, urlAuthorName, selectedPlace, sortOption]);
 
   const headingDates = dateRange?.start
     ? `${format(dateRange.start, 'MMM d, yyyy')}${dateRange.end ? ` – ${format(dateRange.end, 'MMM d, yyyy')}` : ''}`
@@ -150,91 +178,28 @@ const HomeFeedPage = () => {
     <div className="min-h-screen font-sans bg-slate-50 text-slate-900">
       <Navbar searchQuery={searchQuery} onSearch={setSearchQuery} onAddStory={handleAddClick} />
 
-      {/* YouTube Style Top Horizontal Scroll Category/Filter Chips Bar */}
-      <div className="sticky top-[64px] z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs py-2.5 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-[1700px] mx-auto flex items-center justify-between gap-3 flex-wrap">
-          {/* Horizontal Chips Scroll Container */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar flex-1 min-w-0">
-            {/* "All" chip */}
-            <button
-              onClick={() => { setSelectedPlace(''); setSortOption('newest'); }}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all shrink-0 ${
-                !selectedPlace && sortOption === 'newest'
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200/80'
-              }`}
-            >
-              All Stories
-            </button>
-
-            {/* Money Range Chips */}
-            <button
-              onClick={() => setSortOption(s => s === 'cost-asc' ? 'newest' : 'cost-asc')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all shrink-0 flex items-center gap-1.5 ${
-                sortOption === 'cost-asc'
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 hover:bg-emerald-100'
-              }`}
-            >
-              <DollarSign size={13} />
-              <span>Money: Low to High</span>
-            </button>
-
-            <button
-              onClick={() => setSortOption(s => s === 'cost-desc' ? 'newest' : 'cost-desc')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all shrink-0 flex items-center gap-1.5 ${
-                sortOption === 'cost-desc'
-                  ? 'bg-indigo-600 text-white shadow-xs'
-                  : 'bg-indigo-50 text-indigo-700 border border-indigo-200/80 hover:bg-indigo-100'
-              }`}
-            >
-              <DollarSign size={13} />
-              <span>Money: High to Low</span>
-            </button>
-
-            <button
-              onClick={() => setSortOption(s => s === 'likes-desc' ? 'newest' : 'likes-desc')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all shrink-0 ${
-                sortOption === 'likes-desc'
-                  ? 'bg-rose-600 text-white shadow-xs'
-                  : 'bg-rose-50 text-rose-700 border border-rose-200/80 hover:bg-rose-100'
-              }`}
-            >
-              Most Liked ❤️
-            </button>
-
-            {/* Place Chips */}
-            {POPULAR_PLACES.filter(p => p !== 'All').map((placeName) => (
-              <button
-                key={placeName}
-                onClick={() => setSelectedPlace(p => p === placeName ? '' : placeName)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all shrink-0 flex items-center gap-1 ${
-                  selectedPlace === placeName
-                    ? 'bg-sky-600 text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200/80'
-                }`}
-              >
-                <MapPin size={11} className={selectedPlace === placeName ? 'text-white' : 'text-sky-500'} />
-                <span>{placeName}</span>
-              </button>
-            ))}
+      {/* Top Streamlined Filter Bar — Dropdown Controls Only */}
+      <div className="sticky top-[64px] z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs py-3 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1700px] mx-auto flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-extrabold text-slate-500 uppercase tracking-wider hidden sm:inline">Filters & Sort</span>
           </div>
 
-          {/* Quick Filter Select Controls (Place Dropdown & Money Range Dropdown) */}
-          <div className="flex items-center gap-2 shrink-0">
+          {/* Quick Filter Select Controls (Place Dropdown & Money/Sort Dropdown Only) */}
+          <div className="flex items-center gap-3 flex-wrap">
             {/* Filter by Place Select */}
             <div className="relative">
               <select
                 value={selectedPlace}
                 onChange={e => setSelectedPlace(e.target.value)}
-                className="pl-8 pr-3 py-1.5 rounded-xl text-xs font-extrabold bg-white border border-slate-200 text-slate-800 shadow-2xs hover:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="pl-9 pr-8 py-2 rounded-xl text-xs font-extrabold bg-white border border-slate-200 text-slate-800 shadow-2xs hover:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all cursor-pointer"
               >
                 <option value="">Filter by Place (All)</option>
                 {availablePlaces.map(p => (
                   <option key={p} value={p}>{p}</option>
                 ))}
               </select>
-              <MapPin size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sky-500 pointer-events-none" />
+              <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-sky-500 pointer-events-none" />
             </div>
 
             {/* Money Range & Sort Select */}
@@ -242,14 +207,14 @@ const HomeFeedPage = () => {
               <select
                 value={sortOption}
                 onChange={e => setSortOption(e.target.value)}
-                className="pl-8 pr-3 py-1.5 rounded-xl text-xs font-extrabold bg-white border border-slate-200 text-slate-800 shadow-2xs hover:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="pl-9 pr-8 py-2 rounded-xl text-xs font-extrabold bg-white border border-slate-200 text-slate-800 shadow-2xs hover:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all cursor-pointer"
               >
                 <option value="newest">Sort: Newest First</option>
                 <option value="cost-asc">Money: Low to High 💰</option>
                 <option value="cost-desc">Money: High to Low 💎</option>
                 <option value="likes-desc">Sort: Most Liked ❤️</option>
               </select>
-              <ArrowUpDown size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sky-500 pointer-events-none" />
+              <ArrowUpDown size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-sky-500 pointer-events-none" />
             </div>
           </div>
         </div>
