@@ -169,10 +169,12 @@ const StoryDetailPage = () => {
         <img
           src={coverImg}
           alt=""
-          className="w-full h-full object-cover opacity-60 blur-xl scale-110 transition-all duration-700"
+          className="w-full h-full object-cover opacity-70 blur-xl scale-110 transition-all duration-700"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/60 via-slate-900/80 to-slate-950/95" />
+
+        <div className="absolute inset-0 bg-slate-950/20" />
       </div>
+
 
       <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 animate-fade-in">
         {/* Back + author actions */}
