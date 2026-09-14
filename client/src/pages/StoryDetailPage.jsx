@@ -169,7 +169,7 @@ const StoryDetailPage = () => {
         <img
           src={coverImg}
           alt=""
-          className="w-full h-full object-cover opacity-45 blur-xl scale-110 transition-all duration-700"
+          className="w-full h-full object-cover opacity-60 blur-xl scale-110 transition-all duration-700"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-slate-950/60 via-slate-900/80 to-slate-950/95" />
       </div>
